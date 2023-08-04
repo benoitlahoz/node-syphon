@@ -15,7 +15,7 @@ export default defineConfig({
     },
     minify: 'terser',
     rollupOptions: {
-      external: ['bindings', 'node-addon-api', ...builtinModules],
+      external: ['bindings', 'node-addon-api', 'findup-sync', ...builtinModules],
     },
   },
   resolve: {

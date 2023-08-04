@@ -1,9 +1,13 @@
 import { exec } from 'child_process';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 import type { SyphonServerDescriptionPropertyKey, SyphonServerDescription } from '../common';
 
-const COMMAND = `node ${join(process.cwd(), 'dist/server-directory-process.js')}`;
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Launch from this 'dist' folder.
+const COMMAND = `node ${join(__dirname, 'server-directory-process.js')}`;
 
 const EXIT_TYPES = [
   `exit`,

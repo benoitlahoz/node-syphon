@@ -1,46 +1,17 @@
 {
-  "name": "node-syphon",
-  "version": "0.1.1",
-  "license": "GPL-3.0+",
-  "author": {
-    "name": "Benoît LAHOZ",
-    "url": "https://www.benoitlahoz.io",
-    "email": "info@benoitlahoz.io"
-  },
-  "main": "dist/node-syphon.js",
-  "module": "dist/node-syphon.mjs",
-  "types": "dist/types/main/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/node-syphon.mjs",
-      "require": "./dist/node-syphon.js",
-      "types": "./dist/types/main/index.d.ts"
-    }
-  },
+  "name": "root",
+  "private": true,
+  "workspaces": [
+    "lib/**/*",
+    "examples/**/*"
+  ],
   "scripts": {
-    "prebuild": "rimraf dist",
-    "build": "yarn build:syphon && node-gyp configure && node-gyp build && yarn build:main && yarn build:directory && rimraf build",
-    "build:syphon": "./scripts/build-syphon.sh Release",
-    "build:addon": "node-gyp configure && node-gyp build && mv build/Release/syphon.node dist/bin/syphon.node && rimraf build",
-    "build:main": "vite build --config vite.config.main.ts",
-    "build:directory": "vite build --config vite.config.directory.ts",
-    "build:client": "vite build --config ./examples/client/vite.config.ts",
-    "start:client": "node ./examples/client/dist/example_client.mjs",
-    "build:server": "vite build --config ./examples/server/vite.config.ts",
-    "start:server": "node --inspect ./examples/server/dist/example_server.mjs"
+    "build:all": "lerna run build",
+    "update": "lernaupdate",
+    "test": "lerna run test --"
   },
   "devDependencies": {
-    "@types/bindings": "^1.5.1",
-    "@types/node": "^20.4.5",
-    "node-addon-api": "^7.0.0",
-    "node-gyp": "^9.4.0",
-    "rimraf": "^5.0.1",
-    "terser": "^5.19.2",
-    "vite": "^4.4.7",
-    "vite-plugin-dts": "^3.3.1",
-    "vite-plugin-static-copy": "^0.17.0"
-  },
-  "dependencies": {
-    "bindings": "^1.5.0"
+    "lerna": "^4.0.0",
+    "lerna-update-wizard": "^1.1.2"
   }
 }

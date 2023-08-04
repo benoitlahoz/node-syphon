@@ -1,9 +1,18 @@
 /node_modules
-/dist
-/build
 
+/lib/node_modules
+/lib/node-syphon/node_modules
+/lib/node-syphon/dist
+/lib/node-syphon/build
+/lib/node-syphon/Syphon-Framework
+
+/examples/client/dist
 /examples/client/node_modules
+
+/examples/server/dist
 /examples/server/node_modules
+
 /old
 
 .DS_Store
+lerna-debug.log
