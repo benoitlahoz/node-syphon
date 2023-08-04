@@ -1,4 +1,9 @@
 /node_modules
 /dist
+/build
+
+/examples/client/node_modules
+/examples/server/node_modules
+/old
 
 .DS_Store

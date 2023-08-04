@@ -8,14 +8,14 @@
             'cflags_cc+': ['-f-exceptions', '-frtti'],
             'sources': [
                 # Helpers.
-                "<!@(node -p \"require('fs').readdirSync('./src/lib/helpers').map(f=>'src/lib/helpers/'+f).join(' ')\")",
+                "<!@(node -p \"require('fs').readdirSync('./src/obj-cpp/helpers').map(f=>'src/obj-cpp/helpers/'+f).join(' ')\")",
                 # Classes.
-                "<!@(node -p \"require('fs').readdirSync('./src/lib/classes').map(f=>'src/lib/classes/'+f).join(' ')\")",
+                "<!@(node -p \"require('fs').readdirSync('./src/obj-cpp/classes').map(f=>'src/obj-cpp/classes/'+f).join(' ')\")",
                 # Main.
-                "<!@(node -p \"require('fs').readdirSync('./src/lib').map(f=>'src/lib/'+f).join(' ')\")",
+                "<!@(node -p \"require('fs').readdirSync('./src/obj-cpp').map(f=>'src/obj-cpp/'+f).join(' ')\")",
             ],
             'include_dirs': [
-                "<!@(node -p \"require('node-addon-api').include\")",
+                "<!@(node -p \"require('node-addon-api').include\")"
             ],
             'dependencies': [
                 "<!(node -p \"require('node-addon-api').gyp\")"
@@ -31,7 +31,7 @@
                     'architecture': 'x86_64',
                     'xcode_settings': {
                         'CLANG_CXX_LIBRARY': 'libc++',
-                        'MACOSX_DEPLOYMENT_TARGET': '10.11',
+                        'MACOSX_DEPLOYMENT_TARGET': '10.13',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',  # -fvisibility=hidden
@@ -42,13 +42,16 @@
                     },
                     'link_settings': {
                         'libraries': [
-                            '-Wl', '-rpath', '-Fframework/build/', '<(module_root_dir)/frameworks/Syphon/build/Release', '@loader_path/../Frameworks'
+                            '-Wl', 
+                            '-rpath', 
+                            '-Fdist/Frameworks', 
+                            '<(module_root_dir)/dist/Frameworks/', 
+                            '@loader_path/../Frameworks/'
                         ]
                     },
                     # See: https://github.com/ucloud/urtc-electron-demo/blob/master/binding.gyp
                     'mac_framework_dirs': [
-                        # TODO: Remove this, import Syphon from 'custom' folder (in core.mm) and it works, but interesting for loading in Electron. Add other path?
-                        '<!(pwd)/frameworks/Syphon/build/Release/'
+                        '<!(pwd)/dist/Frameworks/'
                     ],
                     'link_settings': {
                         'libraries': [
