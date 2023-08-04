@@ -4,7 +4,6 @@
 /lib/node-syphon/node_modules
 /lib/node-syphon/dist
 /lib/node-syphon/build
-/lib/node-syphon/Syphon-Framework
 
 /examples/client/dist
 /examples/client/node_modules
