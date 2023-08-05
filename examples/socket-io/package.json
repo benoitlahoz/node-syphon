@@ -1,0 +1,37 @@
+{
+  "name": "node-syphon-socket-example",
+  "version": "0.1.0",
+  "license": "GPL-3.0+",
+  "author": {
+    "name": "Benoît LAHOZ",
+    "url": "https://www.benoitlahoz.io",
+    "email": "info@benoitlahoz.io"
+  },
+  "scripts": {
+    "build:server": "NODE_ENV=development vite build --config api/vite.config.ts",
+    "start:server": "NODE_ENV=development node api/dist/example-socket-io-server.mjs",
+    "build:client": "NODE_ENV=development vite build --config browser/vite.config.ts",
+    "start:client": "NODE_ENV=development vite --config browser/vite.config.ts --host"
+  },
+  "devDependencies": {
+    "@types/bindings": "^1.5.1",
+    "@types/node": "^20.4.5",
+    "@vitejs/plugin-vue": "^4.2.3",
+    "node-gyp": "^9.4.0",
+    "pug": "^3.0.2",
+    "rimraf": "^5.0.1",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "^1.4.0",
+    "sass": "^1.64.2",
+    "terser": "^5.19.2",
+    "vite": "^4.4.7",
+    "vite-plugin-dts": "^3.3.1",
+    "vite-plugin-static-copy": "^0.17.0"
+  },
+  "dependencies": {
+    "node-syphon": "^0.1.1",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
+    "vue": "^3.3.4"
+  }
+}
