@@ -6,7 +6,7 @@
 
 #import <Foundation/Foundation.H>
 #import <Cocoa/Cocoa.h>
-#import <OpenGL/OpenGL.h>
+// #import <OpenGL/OpenGL.h>
 #import <Syphon/Syphon.h>
 
 // #include <OpenGL/gl.h>

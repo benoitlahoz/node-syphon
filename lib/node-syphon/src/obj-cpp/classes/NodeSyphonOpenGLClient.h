@@ -6,7 +6,7 @@
 
 #import <Foundation/Foundation.H>
 #import <Cocoa/Cocoa.h>
-#import <OpenGL/OpenGL.h>
+// #import <OpenGL/OpenGL.h>
 #import <Syphon/Syphon.h>
 
 // #include <OpenGL/gl.h>
@@ -33,6 +33,7 @@ namespace syphon
     void Dispose(const Napi::CallbackInfo &info);
 
     void On(const Napi::CallbackInfo &info);
+    // Napi::Value GetFrame(const Napi::CallbackInfo &info);
     Napi::Value GetFrame(const Napi::CallbackInfo &info);
 
     Napi::Value Width(const Napi::CallbackInfo &info);
