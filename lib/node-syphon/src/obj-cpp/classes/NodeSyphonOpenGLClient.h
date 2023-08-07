@@ -32,6 +32,7 @@ namespace syphon
 
     void Dispose(const Napi::CallbackInfo &info);
 
+    void On(const Napi::CallbackInfo &info);
     Napi::Value GetFrame(const Napi::CallbackInfo &info);
 
     Napi::Value Width(const Napi::CallbackInfo &info);
@@ -39,9 +40,12 @@ namespace syphon
 
   private:
     static Napi::FunctionReference constructor;
+
     void _Dispose();
     void _CreateCurrentContext(Napi::Env env);
+    uint8_t *_DrawFrame(SyphonOpenGLClient *client);
 
+    // Napi::EscapableHandleScope m_escapableScope;
     SyphonOpenGLClient *m_client;
     size_t m_width;
     size_t m_height;
