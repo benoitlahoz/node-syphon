@@ -45,7 +45,7 @@ const test = () => {
     );
     directory.listen();
 
-    interval = setInterval(() => {
+    interval = setInterval(async () => {
       // console.log('YOP', directory.servers);
       if (directory.servers.length > 0 && !client) {
         console.log('Create');
@@ -55,10 +55,8 @@ const test = () => {
         client.dispose();
         client = null;
       } else if (client) {
-        /*
-        console.log(client.newFrame);
+        console.log(await client.newFrame);
         console.log(client.width, client.height);
-        */
       }
     }, 1000 / 60);
   } catch (err) {
