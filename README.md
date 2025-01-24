@@ -13,7 +13,7 @@ At the time of building my own multiplatform apps, using `Electron` and web tech
 
 For the time being, `node-syphon` is not released as a `npm` package (see [here](https://stackoverflow.com/questions/79384958/publish-a-npm-package-that-contains-a-cocoa-framework-build)) and cannot be installed like this.
 
-It can be installed with Syphon dependency via `yarn add https://github.com/benoitlahoz/node-syphon`.
+It can be installed embedding Syphon dependency via `yarn add https://github.com/benoitlahoz/node-syphon`.
 
 ## Build
 
