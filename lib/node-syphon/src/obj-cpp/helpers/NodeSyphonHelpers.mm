@@ -2,6 +2,96 @@
 
 @implementation NodeSyphonHelpers
 
+// Thanks to https://stackoverflow.com/questions/61035830/how-to-create-an-opengl-context-on-an-nodejs-native-addon-on-macos
++ (CGLContextObj) createCGLContextWithInfo:(const Napi::CallbackInfo &)info {
+
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+  
+  CGLContextObj context;
+
+  CGLPixelFormatAttribute attributes[3] = {
+    kCGLPFAAccelerated, 
+    kCGLPFANoRecovery,
+    // kCGLPFADoubleBuffer,
+    (CGLPixelFormatAttribute) 0
+  };
+
+  CGLPixelFormatObj pix;
+
+  CGLError errorCode;
+
+  GLint num; // Stores the number of possible pixel formats
+
+  errorCode = CGLChoosePixelFormat( attributes, &pix, &num );
+
+  if (errorCode > 0) {
+    // TODO: CGLError to string.
+    Napi::Error::New(env, "choosePixelFormat returned an error").ThrowAsJavaScriptException();
+  }
+
+  errorCode = CGLCreateContext(pix, NULL, &context);
+  if (errorCode > 0) {
+    Napi::Error::New(env, "CGLCreateContext returned an error").ThrowAsJavaScriptException();
+  }
+
+  CGLDestroyPixelFormat(pix);
+
+  return context;
+}
+
+// WARNING: It's up to the caller to delete the created buffer.
++ (uint8_t *) bufferWithOpenGLFrame:(SyphonOpenGLImage *)frame {
+
+  size_t width = [frame textureSize].width;
+  size_t height = [frame textureSize].height;
+
+  uint8_t* pixelBuffer = new uint8_t[width * height * 4];
+  std::memset(pixelBuffer, 0, width * height * 4);
+
+  GLuint fbo;
+
+  CGLLockContext(CGLGetCurrentContext());
+  
+  glGenFramebuffers(1, &fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, [frame textureName], 0);
+
+  glBindTexture(GL_TEXTURE_RECTANGLE, [frame textureName]);
+
+  glViewport(0, 0, width, height);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+  // glClear(GL_COLOR_BUFFER_BIT); 
+
+  glEnable(GL_TEXTURE_RECTANGLE);
+  glDisable(GL_DEPTH_TEST);
+
+  glBindTexture(GL_TEXTURE_RECTANGLE, [frame textureName]);
+
+  glBegin(GL_QUADS);
+  
+  glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
+  glTexCoord2f(width, 0.0f); glVertex2f(1.0f, -1.0f);
+  glTexCoord2f(width, height); glVertex2f(1.0f, 1.0f);
+  glTexCoord2f(0.0f, height); glVertex2f(-1.0f, 1.0f);
+
+  glEnd();
+
+  glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixelBuffer);
+
+  glBindTexture(GL_TEXTURE_RECTANGLE, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDeleteFramebuffers(1, &fbo);
+
+  [frame release];
+  CGLUnlockContext(CGLGetCurrentContext());
+
+  return pixelBuffer;
+}
+
+/**
+ * Creates a Napi::Object with a server description NSDictionary.
+ */
 + (Napi::Object)serverDescription:(NSDictionary *)description info:(const Napi::CallbackInfo &)info {
 
   Napi::Env env = info.Env();
@@ -22,8 +112,10 @@
 
   if ([description objectForKey:SyphonServerDescriptionIconKey]) {
     // obj.Set("SyphonServerDescriptionIconKey", [[description objectForKey:SyphonServerDescriptionIconKey] UTF8String]);
+    NSImage *icon = [description objectForKey:SyphonServerDescriptionIconKey];
     uint8_t * buffer = [NodeSyphonHelpers imageToBuffer:[description objectForKey:SyphonServerDescriptionIconKey]];
-
+    Napi::Value result = Napi::ArrayBuffer::New(env, buffer, icon.size.width * icon.size.height * 4);
+    obj.Set("SyphonServerDescriptionIconKey", result);
     delete [] buffer;
   }
 

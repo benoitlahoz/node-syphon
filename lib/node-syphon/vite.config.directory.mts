@@ -8,7 +8,7 @@ export default defineConfig({
   build: {
     emptyOutDir: false,
     lib: {
-      entry: path.resolve(__dirname, 'src/server-directory-process/index.ts'),
+      entry: path.resolve(__dirname, 'src/server-directory.process/index.ts'),
       fileName: 'server-directory-process',
       formats: ['cjs'],
     },

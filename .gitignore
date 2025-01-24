@@ -1,12 +1,12 @@
 /node_modules
 /**/node_modules
 /**/dist
+/**/old
+/.pastebin
 
 /lib/node-syphon/node_modules
 /lib/node-syphon/dist
 /lib/node-syphon/build
-
-/old
 
 .DS_Store
 lerna-debug.log

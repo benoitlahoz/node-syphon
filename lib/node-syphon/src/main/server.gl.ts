@@ -28,6 +28,17 @@ export class SyphonOpenGLServer {
     this._server.publishImageData(data, textureTarget, imageRegion, textureDimension, flipped);
   }
 
+  /*
+  public publishFrameTexture(
+    handle: Buffer,
+    textureTarget: SyphonTextureTarget,
+    imageRegion: { x: number; y: number; width: number; height: number },
+    textureDimension: { width: number; height: number },
+    flipped: boolean
+  ): void {
+    this._server.publishFrameTexture(data, textureTarget, imageRegion, textureDimension, flipped);
+  }
+  */
   public get name(): string {
     return this._server.name;
   }

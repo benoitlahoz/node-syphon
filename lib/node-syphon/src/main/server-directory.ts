@@ -1,8 +1,9 @@
 import { exec } from 'child_process';
+import type { ChildProcess } from 'child_process';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
-import type { SyphonServerDescriptionPropertyKey, SyphonServerDescription } from '../common';
+import type { SyphonServerDescription } from '../common';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -21,6 +22,8 @@ const EXIT_TYPES = [
 ];
 
 export enum SyphonServerDirectoryListenerChannel {
+  SyphonServerInfoNotification = 'syphon:server.info',
+  SyphonServerErrorNotification = 'syphon:server.error',
   SyphonServerAnnounceNotification = 'syphon:server.announce',
   SyphonServerRetireNotification = 'syphon:server.retire',
   SyphonServerUpdateNotification = 'syphon:server.update',
@@ -39,11 +42,17 @@ export const NodeSyphonServerDictionaryKey = 'NodeSyphonServerDictionary';
 export class SyphonServerDirectory {
   private static _instance: SyphonServerDirectory;
 
-  private _serverDirectoryProcess: any;
+  private _serverDirectoryProcess: ChildProcess;
   private _serverDirectoryRunning = false;
 
+  /**
+   * Current servers in directory.
+   */
   private _servers: Array<SyphonServerDescription> = [];
 
+  /**
+   * Listeners on servers' notifications.
+   */
   private _listeners: Record<
     SyphonServerDirectoryListenerChannel | any,
     Array<(...args: any[]) => void>
@@ -100,6 +109,9 @@ export class SyphonServerDirectory {
     return this._servers;
   }
 
+  /**
+   * Listens to servers' directory changes.
+   */
   public listen(): void {
     try {
       if (this._serverDirectoryRunning) {
@@ -112,12 +124,20 @@ export class SyphonServerDirectory {
       // Actually run the Syphon servers listener.
       this._serverDirectoryProcess = exec(COMMAND);
 
+      this._emit(
+        SyphonServerDirectoryListenerChannel.SyphonServerInfoNotification,
+        `Syphon directory server process launched with pid: ${this._serverDirectoryProcess.pid}`
+      );
+
       // Listens to process outputs.
+      // Node addon will parse Syphon's server directory dictionary into a parsable JSON string.
       this._serverDirectoryProcess.stdout.setEncoding('utf8');
       this._serverDirectoryProcess.stdout.on('data', this._parseProcessData.bind(this));
 
       this._serverDirectoryRunning = true;
     } catch (err) {
+      this._emit(SyphonServerDirectoryListenerChannel.SyphonServerErrorNotification, err);
+      this.dispose();
       throw err;
     }
   }
@@ -132,81 +152,102 @@ export class SyphonServerDirectory {
 
   private _parseProcessData(data: any) {
     try {
-      const obj = JSON.parse(data.toString());
+      // Addon outputs a string that ends, or is separated by this token.
+      const split = data.toString().split('--__node-syphon-delimiter__--');
+      let obj = [];
 
-      switch (obj.NodeSyphonMessageType) {
-        case NodeSyphonMessageTypeInfo: {
-          console.info(obj.NodeSyphonMessage);
-          break;
-        }
-        case NodeSyphonMessageTypeError: {
-          console.error(obj.NodeSyphonMessage);
-          break;
-        }
-        case NodeSyphonMessageTypeNotification: {
-          const type = obj.NodeSyphonMessage.NodeSyphonNotificationType;
+      for (const str of split) {
+        if (str.trim().length === 0) continue;
+        obj.push(JSON.parse(str));
+      }
 
-          switch (type) {
-            case 'SyphonServerAnnounceNotification': {
-              /**
-               * A server was added.
-               */
-              this._servers.push(obj.NodeSyphonMessage.NodeSyphonServerDictionary);
-              this._servers = Array.from(new Set(this._servers));
-              this._emit(
-                SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
-                obj.NodeSyphonMessage.NodeSyphonServerDictionary
-              );
-              break;
-            }
-            case 'SyphonServerRetireNotification': {
-              /**
-               * A server was removed.
-               */
-              const server = this._servers.find(
-                (s: any) =>
-                  s.SyphonServerDescriptionUUIDKey ==
-                  obj.NodeSyphonMessage.NodeSyphonServerDictionary.SyphonServerDescriptionUUIDKey
-              );
-
-              if (server) {
-                const index = this._servers.indexOf(server);
-                this._servers.splice(index, 1);
-                this._emit(
-                  SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification,
-                  obj.NodeSyphonMessage.NodeSyphonServerDictionary
-                );
-              }
-              break;
-            }
-            case 'SyphonServerUpdateNotification': {
-              /**
-               * A server was updated.
-               */
-              // TODO: Untested, unable to find a Syphon server updating...
-              const server = this._servers.find(
-                (s: any) =>
-                  s.SyphonServerDescriptionUUIDKey ==
-                  obj.NodeSyphonMessage.NodeSyphonServerDictionary.SyphonServerDescriptionUUIDKey
-              );
-
-              if (server) {
-                const index = this._servers.indexOf(server);
-                this._servers.splice(index, 1, obj.NodeSyphonMessage.NodeSyphonServerDictionary);
-                this._emit(
-                  SyphonServerDirectoryListenerChannel.SyphonServerUpdateNotification,
-                  obj.NodeSyphonMessage.NodeSyphonServerDictionary
-                );
-              }
-              break;
-            }
+      for (const message of obj) {
+        switch (message.NodeSyphonMessageType) {
+          case NodeSyphonMessageTypeInfo: {
+            this._emit(
+              SyphonServerDirectoryListenerChannel.SyphonServerInfoNotification,
+              message.NodeSyphonMessage
+            );
+            break;
           }
-          break;
-        }
-        default: {
-          throw new Error(
-            `Unhandled message type from ServerDirectory subprocess: ${obj.NodeSyphonMessageType}`
-          );
+          case NodeSyphonMessageTypeError: {
+            this._emit(
+              SyphonServerDirectoryListenerChannel.SyphonServerErrorNotification,
+              message.NodeSyphonMessage
+            );
+            break;
+          }
+          case NodeSyphonMessageTypeNotification: {
+            const type = message.NodeSyphonMessage.NodeSyphonNotificationType;
+
+            switch (type) {
+              case 'SyphonServerAnnounceNotification': {
+                /**
+                 * A server was added.
+                 */
+                this._servers.push(message.NodeSyphonMessage.NodeSyphonServerDictionary);
+                this._servers = Array.from(new Set(this._servers));
+                this._emit(
+                  SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
+                  message.NodeSyphonMessage.NodeSyphonServerDictionary
+                );
+                break;
+              }
+              case 'SyphonServerRetireNotification': {
+                /**
+                 * A server was removed.
+                 */
+                const server = this._servers.find(
+                  (s: any) =>
+                    s.SyphonServerDescriptionUUIDKey ==
+                    message.NodeSyphonMessage.NodeSyphonServerDictionary
+                      .SyphonServerDescriptionUUIDKey
+                );
+
+                if (server) {
+                  const index = this._servers.indexOf(server);
+                  this._servers.splice(index, 1);
+                  this._emit(
+                    SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification,
+                    message.NodeSyphonMessage.NodeSyphonServerDictionary
+                  );
+                }
+                break;
+              }
+              case 'SyphonServerUpdateNotification': {
+                /**
+                 * A server was updated.
+                 */
+                const server = this._servers.find(
+                  (s: any) =>
+                    s.SyphonServerDescriptionUUIDKey ==
+                    message.NodeSyphonMessage.NodeSyphonServerDictionary
+                      .SyphonServerDescriptionUUIDKey
+                );
+
+                if (server) {
+                  const index = this._servers.indexOf(server);
+                  this._servers.splice(
+                    index,
+                    1,
+                    message.NodeSyphonMessage.NodeSyphonServerDictionary
+                  );
+                  this._emit(
+                    SyphonServerDirectoryListenerChannel.SyphonServerUpdateNotification,
+                    message.NodeSyphonMessage.NodeSyphonServerDictionary
+                  );
+                }
+
+                break;
+              }
+            }
+            break;
+          }
+          default: {
+            throw new Error(
+              `Unhandled message type from ServerDirectory subprocess: ${message.NodeSyphonMessageType}`
+            );
+          }
         }
       }
     } catch (err) {
@@ -220,8 +261,6 @@ export class SyphonServerDirectory {
     // Listen to exit signals.
     EXIT_TYPES.forEach((eventType) => {
       const end = () => {
-        // FIXME: Pressing up arrow when running in command line sends a
-        // signal which listener was not removed...
         if (this._serverDirectoryProcess) {
           this.dispose();
 

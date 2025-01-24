@@ -9,8 +9,9 @@
 // #import <OpenGL/OpenGL.h>
 #import <Syphon/Syphon.h>
 
-// #include <OpenGL/gl.h>
+#include <OpenGL/gl.h>
 #include <OpenGL/gl3.h>
+#include <OpenGL/glExt.h>
 
 // Macros.
 
@@ -33,6 +34,7 @@ namespace syphon
     void Dispose(const Napi::CallbackInfo &info);
 
     void PublishImageData(const Napi::CallbackInfo &info);
+    // void PublishFrameTexture(const Napi::CallbackInfo &info);
     void On(const Napi::CallbackInfo &info);
 
     // Class listeners.

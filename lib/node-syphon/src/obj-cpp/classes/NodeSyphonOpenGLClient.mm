@@ -19,12 +19,8 @@ SyphonOpenGLClientWrapper::SyphonOpenGLClientWrapper(const Napi::CallbackInfo& i
 : Napi::ObjectWrap<SyphonOpenGLClientWrapper>(info)
 {
 
-
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env); // Means that env will be released after method returns.
-  // Napi::EscapableHandleScope scope(env);
-
-  // Napi::EscapableHandleScope m_escapableScope(env, scope);
 
   m_client = NULL;
   m_width = 0;
@@ -35,19 +31,6 @@ SyphonOpenGLClientWrapper::SyphonOpenGLClientWrapper(const Napi::CallbackInfo& i
     const char * err = "Please provide a server description.";
     Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
   }
-
-  /*
-  Napi::ThreadSafeFunction callback;
-  if (info.Length() == 2 && info[1].IsFunction())
-  {
-     Napi::Function jsCallback = info[1].As<Napi::Function>();
-    callback = Napi::ThreadSafeFunction::New(env, jsCallback, "Callback", 0, 1);
-  }
-  */
-
-  // Try to instantiate the object with the provided CallbackInfo.
-  // It's up to the wrapped class to throw an error we'll catch here.
-  try {
 
     Napi::Object description = info[0].As<Napi::Object>();
 
@@ -61,17 +44,6 @@ SyphonOpenGLClientWrapper::SyphonOpenGLClientWrapper(const Napi::CallbackInfo& i
     }
 
     NSMutableDictionary *serverDescription = [[NSMutableDictionary alloc] init];
-    
-    /*
-    for (const auto& e : description) {
-      // printf("KEY %s\n", static_cast<Napi::Value>(e.first).As<Napi::String>().Utf8Value().c_str());
-      // printf("VALUE %s\n", static_cast<Napi::Value>(e.second).As<Napi::String>().Utf8Value().c_str());
-      // sum += static_cast<Value>(e.second).As<Number>().Int64Value();
-      [serverDescription setObject:[NSString stringWithUTF8String:static_cast<Napi::Value>(e.second).As<Napi::String>().Utf8Value().c_str()] 
-                            forKey:[NSString stringWithUTF8String:static_cast<Napi::Value>(e.first).As<Napi::String>().Utf8Value().c_str()]
-      ];
-    }
-    */
 
     [serverDescription setObject:[NSString stringWithUTF8String:description.Get("SyphonServerDescriptionAppNameKey").As<Napi::String>().Utf8Value().c_str()] forKey:SyphonServerDescriptionAppNameKey];
 
@@ -101,6 +73,11 @@ SyphonOpenGLClientWrapper::SyphonOpenGLClientWrapper(const Napi::CallbackInfo& i
                                                               options:nil 
                                                       newFrameHandler:^(SyphonOpenGLClient *client) {
         // TODO: napi_threadsafe_callback
+
+
+        // Runs in another thread.
+        // NSLog(@"%@", [NSThread isMainThread] ? @"MAIN THREAD" : @"OTHER THREAD");
+
     }];
 
     NSLog(@"%@", m_client);
@@ -111,10 +88,6 @@ SyphonOpenGLClientWrapper::SyphonOpenGLClientWrapper(const Napi::CallbackInfo& i
 
     // printf("Initialize Client for Server's named '%s'.\n", TO_C_STRING(info[0]));
     // [[NSRunLoop currentRunLoop] run];
-  } catch (char const *err)
-  {
-    Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
-  }
 
 }
 
@@ -249,13 +222,6 @@ uint8_t *SyphonOpenGLClientWrapper::_DrawFrame(SyphonOpenGLClient *client) {
   SyphonOpenGLImage *frame = [client newFrameImage];
   m_width = [frame textureSize].width;
   m_height = [frame textureSize].height;
-
-  /*
-  glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
-  glTexCoord2f(m_width, 0.0f); glVertex2f(1.0f, -1.0f);
-  glTexCoord2f(m_width, m_height); glVertex2f(1.0f, 1.0f);
-  glTexCoord2f(0.0f, m_height); glVertex2f(-1.0f, 1.0f);
-  */
 
   uint8_t* pixelBuffer = new uint8_t[m_width * m_height * 4];
   std::memset(pixelBuffer, 0, m_width * m_height * 4);

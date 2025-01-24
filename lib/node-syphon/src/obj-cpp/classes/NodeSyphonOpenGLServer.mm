@@ -7,9 +7,7 @@
 
 using namespace syphon;
 
-// int SyphonOpenGLServerWrapper::s_callbacks_count = 0;
-// std::map<std::string, std::vector<Napi::ThreadSafeFunction>> SyphonOpenGLServerWrapper::m_listeners;
-
+// #define SYPHON_CORE_SHARE 1
 
 Napi::FunctionReference SyphonOpenGLServerWrapper::constructor;
 
@@ -74,6 +72,7 @@ SyphonOpenGLServerWrapper::SyphonOpenGLServerWrapper(const Napi::CallbackInfo& i
  */
 SyphonOpenGLServerWrapper::~SyphonOpenGLServerWrapper()
 {
+  printf("Syphon server destructor will call dispose.\n");
   _Dispose();
 }
 
@@ -92,10 +91,13 @@ bool SyphonOpenGLServerWrapper::HasInstance(Napi::Value value)
  */
 void SyphonOpenGLServerWrapper::Dispose(const Napi::CallbackInfo& info)
 {
+  printf("Syphon server dispose method will call dispose.\n");
   _Dispose();
 }
 
 void SyphonOpenGLServerWrapper::_Dispose() {
+
+  printf("Syphon server will dispose.\n");
 
   if (m_server != NULL) {
     [m_server release];
@@ -145,7 +147,6 @@ void SyphonOpenGLServerWrapper::_CreateCurrentContext(Napi::Env env) {
 }
 
 void SyphonOpenGLServerWrapper::_GenerateTexture(GLenum textureTarget, GLsizei width, GLsizei height, uint8_t * data) {
-
   glEnable(textureTarget);
   glBindTexture(textureTarget, _texture);
 
@@ -179,7 +180,7 @@ void SyphonOpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
     }
     
     if (!IS_TEXTURE_TARGET(info[1])) {
-      Napi::TypeError::New(env, "2nd parameter (textureTarget) must be a string containing GL_TEXTURE_RECTANGLE_EXT or GL_TEXTURE_2D in 'publishImageData'").ThrowAsJavaScriptException();
+      Napi::TypeError::New(env, "2nd parameter (textureTarget) must be a string containing GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_RECTANGLE or GL_TEXTURE_2D in 'publishImageData'").ThrowAsJavaScriptException();
     }
 
     if (!IS_RECT(info[2])) {
@@ -200,7 +201,8 @@ void SyphonOpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
 
   try {
 
-    GLenum textureTarget = info[1].As<Napi::String>().Utf8Value() == "GL_TEXTURE_RECTANGLE_EXT" ? GL_TEXTURE_RECTANGLE_EXT : GL_TEXTURE_2D;
+    std::string targetString = info[1].As<Napi::String>().Utf8Value();
+    GLenum textureTarget = targetString ==  "GL_TEXTURE_RECTANGLE_EXT" ? GL_TEXTURE_RECTANGLE_EXT : targetString ==  "GL_TEXTURE_2D" ? GL_TEXTURE_2D : GL_TEXTURE_RECTANGLE;
 
     Napi::Object region = info[2].As<Napi::Object>();
     Napi::Object size = info[3].As<Napi::Object>();
@@ -214,12 +216,10 @@ void SyphonOpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
     // See: https://stackoverflow.com/a/59004450/1060921
     // os_unfair_lock_lock(&m_lock); 
 
-    // uint8_t * data = reinterpret_cast<uint8_t *>(buffer.Data());
+    // See here: https://github.com/nodejs/node-addon-examples/blob/main/array_buffer_to_native/node-addon-api/array_buffer_to_native.cc
+    Napi::ArrayBuffer buffer = info[0].As<Napi::TypedArrayOf<uint8_t>>().ArrayBuffer(); 
 
     CGLLockContext([m_server context]);
-
-    // See here: https://github.com/nodejs/node-addon-examples/blob/main/array_buffer_to_native/node-addon-api/array_buffer_to_native.cc
-    Napi::ArrayBuffer buffer = info[0].As<Napi::TypedArrayOf<uint8_t>>().ArrayBuffer();
 
     glGenTextures(1, &_texture);  
     
@@ -229,8 +229,6 @@ void SyphonOpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
       (GLsizei)textureDimensions.height, 
       (uint8_t *)buffer.Data() 
     );
-
-    /* (uint8_t *)buffer.Data() */ /* data */
 
     [m_server publishFrameTexture:_texture 
               textureTarget:textureTarget 
@@ -304,6 +302,7 @@ Napi::Object SyphonOpenGLServerWrapper::Init(Napi::Env env, Napi::Object exports
     // Methods.
 
     InstanceMethod("publishImageData", &SyphonOpenGLServerWrapper::PublishImageData),
+    // InstanceMethod("publishFrameTexture", &SyphonOpenGLServerWrapper::PublishFrameTexture),
     InstanceMethod("dispose", &SyphonOpenGLServerWrapper::Dispose),
 
     // Accessors.

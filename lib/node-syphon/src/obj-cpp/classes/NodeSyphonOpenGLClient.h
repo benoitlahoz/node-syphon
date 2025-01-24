@@ -50,6 +50,8 @@ namespace syphon
     SyphonOpenGLClient *m_client;
     size_t m_width;
     size_t m_height;
+
+    SyphonOpenGLImage *m_frame;
   };
 }
 

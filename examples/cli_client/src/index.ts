@@ -32,33 +32,33 @@ const test = () => {
     directory.on(
       SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
       (server: any) => {
-        console.log('SERVER ANNOUNCE', server);
+        console.log('Server announce', server);
         console.log(directory.servers);
       }
     );
     directory.on(
       SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification,
       (server: any) => {
-        console.log('SERVER RETIRE', server);
+        console.log('Server retire', server);
         console.log(directory.servers);
       }
     );
     directory.listen();
 
-    // SyphonServerDirectory.listen();
-
     interval = setInterval(() => {
       // console.log('YOP', directory.servers);
       if (directory.servers.length > 0 && !client) {
-        console.log('GO');
+        console.log('Create');
         client = new SyphonOpenGLClient(directory.servers[directory.servers.length - 1]);
       } else if (directory.servers.length === 0 && client) {
-        console.log('GO DISP');
+        console.log('Dispose');
         client.dispose();
         client = null;
       } else if (client) {
+        /*
         console.log(client.newFrame);
         console.log(client.width, client.height);
+        */
       }
     }, 1000 / 60);
   } catch (err) {

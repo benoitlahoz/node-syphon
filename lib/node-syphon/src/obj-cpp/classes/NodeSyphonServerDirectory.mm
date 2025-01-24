@@ -23,7 +23,7 @@ void sigHandler(int sig) {
 
     // This is the same as our instance's _Dispose method.
     
-    printf("{\"NodeSyphonMessageTypeKey\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessageKey\": \"Signal handler called...\"}");
+    printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessageKey\": \"Signal handler called...\"}--__node-syphon-delimiter__--");
     
     CFRunLoopStop([[NSRunLoop currentRunLoop] getCFRunLoop]);
 
@@ -40,6 +40,7 @@ void sigHandler(int sig) {
 
 NSString * toJSON(NSString *type, NSDictionary *dic) {
 
+    // TODO: tryCatch here...
     NSString *json = [NSString stringWithFormat:
                         @"{"
                         @"\"%@\": \"%@\","
@@ -127,13 +128,13 @@ void SyphonServerDirectoryWrapper::Listen(const Napi::CallbackInfo& info)
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
 
-  printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessage\": \"Listen to Syphon notifications...\"}");
+  printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessage\": \"Listening to Syphon directory server notifications...\"}--__node-syphon-delimiter__--");
 
   _announce_observer = [[NSNotificationCenter defaultCenter] addObserverForName:SyphonServerAnnounceNotification
       object: nil
       queue: nil
       usingBlock: ^ (NSNotification * notification) {
-        printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}", [toJSON(SyphonServerAnnounceNotification, [notification userInfo]) UTF8String]);
+        printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}--__node-syphon-delimiter__--", [toJSON(SyphonServerAnnounceNotification, [notification userInfo]) UTF8String]);
       }
     ];
 
@@ -141,7 +142,7 @@ void SyphonServerDirectoryWrapper::Listen(const Napi::CallbackInfo& info)
       object: nil
       queue: nil
       usingBlock: ^ (NSNotification * notification) {
-        printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}", [toJSON(SyphonServerRetireNotification, [notification userInfo]) UTF8String]);
+        printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}--__node-syphon-delimiter__--", [toJSON(SyphonServerRetireNotification, [notification userInfo]) UTF8String]);
       }
     ];
 
@@ -149,7 +150,7 @@ void SyphonServerDirectoryWrapper::Listen(const Napi::CallbackInfo& info)
       object: nil
       queue: nil
       usingBlock: ^ (NSNotification * notification) {
-        printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}", [toJSON(SyphonServerUpdateNotification, [notification userInfo]) UTF8String]);
+        printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}--__node-syphon-delimiter__--", [toJSON(SyphonServerUpdateNotification, [notification userInfo]) UTF8String]);
       }
     ];
 
@@ -158,7 +159,7 @@ void SyphonServerDirectoryWrapper::Listen(const Napi::CallbackInfo& info)
 
 void SyphonServerDirectoryWrapper::_Dispose() {
 
-    printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessage\": \"Deallocation server directory listener...\"}");
+    printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessage\": \"Deallocation of server directory listener...\"}--__node-syphon-delimiter__--");
     if (_announce_observer) {
       CFRunLoopStop([[NSRunLoop currentRunLoop] getCFRunLoop]);
 
