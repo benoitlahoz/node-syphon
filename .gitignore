@@ -1,10 +1,11 @@
 /node_modules
 /**/node_modules
-/**/dist/*
+/**/dist
 /**/old
 /.pastebin
 
 /lib/node-syphon/node_modules
+!/lib/node-syphon/dist
 /lib/node-syphon/build
 
 .DS_Store
