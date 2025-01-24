@@ -55,7 +55,7 @@ for (let i = 0; i < size; i = i + 4) {
 }
 
 // Send frames.
-// Better ina worker.
+// Better in a worker.
 const interval = setInterval(() => {
   server.publishImageData(
     data,
