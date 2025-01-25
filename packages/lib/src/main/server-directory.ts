@@ -21,13 +21,8 @@ const EXIT_TYPES = [
   `SIGTERM`,
 ];
 
-export enum SyphonServerDirectoryListenerChannel {
-  SyphonServerInfoNotification = 'syphon:server.info',
-  SyphonServerErrorNotification = 'syphon:server.error',
-  SyphonServerAnnounceNotification = 'syphon:server.announce',
-  SyphonServerRetireNotification = 'syphon:server.retire',
-  SyphonServerUpdateNotification = 'syphon:server.update',
-}
+import { SyphonServerDirectoryListenerChannel } from './universal';
+export { SyphonServerDirectoryListenerChannel };
 
 export const NodeSyphonMessageTypeKey = 'NodeSyphonMessageType';
 export const NodeSyphonMessageKey = 'NodeSyphonMessage';
