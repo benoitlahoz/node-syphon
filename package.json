@@ -2,18 +2,20 @@
   "name": "root",
   "private": true,
   "workspaces": [
-    "lib/**/*",
+    "lib/*",
     "examples/**/*"
   ],
   "scripts": {
     "build": "lerna run build",
     "update": "lernaupdate",
-    "test": "lerna run test --",
-    "modules:clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
-    "modules:reinstall": "yarn modules:clean && yarn install"
+    "test": "lerna run test --"
   },
   "devDependencies": {
-    "lerna": "^4.0.0",
+    "lerna": "^8.1.8",
     "lerna-update-wizard": "^1.1.2"
+  },
+  "resolutions": {
+    "string-width": "^4.2.0",
+    "wrap-ansi": "^7.0.0"
   }
 }

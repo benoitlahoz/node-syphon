@@ -5,7 +5,7 @@ CONFIG=${1?Error: No input configuration (Debug or Release) provided.}
 echo Building Syphon with scheme \'$CONFIG\'...
 
 # Go to Syphon directory from the project's root.
-cd ../../Syphon-Framework
+cd ../Syphon-Framework
 
 # rm syphon.$CONFIG.xcconfig
 
@@ -26,9 +26,9 @@ xcodebuild clean
 # xcodebuild -scheme "Syphon" -target "Syphon" -arch x86_64 -derivedDataPath .temp -configuration $CONFIG -xcconfig syphon.$CONFIG.xcconfig CONFIGURATION_BUILD_DIR=../dist/Frameworks
 # xcodebuild -scheme "Syphon" -arch x86_64 -derivedDataPath .temp CONFIGURATION_BUILD_DIR=build/$CONFIG
 
-xcodebuild -scheme "Syphon" -target "Syphon" -arch x86_64 -derivedDataPath .temp -configuration $CONFIG CONFIGURATION_BUILD_DIR=../lib/node-syphon/dist/Frameworks
+xcodebuild -scheme "Syphon" -target "Syphon" -arch x86_64 -derivedDataPath .temp -configuration $CONFIG CONFIGURATION_BUILD_DIR=../lib/dist/Frameworks
 
 # Clean-up.
 rm -rf DerivedData 
 rm -rf .temp
-rm -rf ../lib/node-syphon/dist/Frameworks/Syphon.framework.dSYM
+rm -rf ../lib/dist/Frameworks/Syphon.framework.dSYM

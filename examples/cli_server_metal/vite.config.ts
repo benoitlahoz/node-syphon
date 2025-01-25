@@ -7,7 +7,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
-      fileName: 'example_server',
+      fileName: 'index',
       formats: ['es', 'cjs'],
     },
     minify: 'terser',

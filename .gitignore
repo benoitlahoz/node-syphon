@@ -11,3 +11,8 @@
 .DS_Store
 lerna-debug.log
 Syphon-Framework
+
+
+
+.nx/cache
+.nx/workspace-data
