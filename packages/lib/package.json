@@ -53,5 +53,9 @@
   },
   "dependencies": {
     "bindings": "^1.5.0"
+  },
+  "engines": {
+    "node": ">=20.17.0",
+    "npm": ">11.0.0"
   }
 }
