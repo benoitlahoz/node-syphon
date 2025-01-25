@@ -2,18 +2,18 @@
 
 Experimental and superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syphon-Framework) and `node.js`.
 
-As of `v0.4.0` node-syphon provides ways to listen to servers' directory, **copy pixels** to a server and **get pixels** from a client. As it may not be very effective, see **TODO** section for texture binding (contributors welcome).
+As of `v0.4.0` node-syphon provides ways to listen to servers' directory, **copy pixels** to a server and **get pixels** from a client. Using a zero copy texture is on the roadmap, see **TODO** section for texture binding (contributors welcome).
 
 ## Motivation
 
 I've been using Syphon for years for my artistic work, with different applications: Quartz Composer, VDMX, Millumin, Processing, etc.
-At the time of building my own multiplatform apps, using `Electron` and web technolgies, I want (and I need) Syphon to be a first class citizen of their visual workflow.
+At the time of building my own multiplatform apps, using `Electron` and web technologies, I want (and I need) Syphon to be a first class citizen of the visual workflow.
 
 ## Install
 
 For the time being, `node-syphon` is not released as a `npm` package (see [here](https://stackoverflow.com/questions/79384958/publish-a-npm-package-that-contains-a-cocoa-framework-build)) and cannot be installed like this.
 
-It can be installed embedding Syphon dependency via `yarn add https://github.com/benoitlahoz/node-syphon`.
+It can be installed with embedded Syphon dependency via `yarn add https://github.com/benoitlahoz/node-syphon`.
 
 ## Build
 
