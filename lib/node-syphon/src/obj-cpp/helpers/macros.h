@@ -11,6 +11,8 @@
 
 #define IS_UINT8_CLAMPED_ARRAY(value) (value.IsTypedArray() && value.As<Napi::TypedArray>().TypedArrayType() == napi_uint8_clamped_array)
 
+#define IS_NUMBER(value) (value.IsNumber())
+
 #define IS_BUFFER(value) (value.IsBuffer())
 
 #define IS_TEXTURE_TARGET(value) (value.IsString() && (value.As<Napi::String>().Utf8Value() == "GL_TEXTURE_RECTANGLE_EXT" || value.As<Napi::String>().Utf8Value() == "GL_TEXTURE_2D" || value.As<Napi::String>().Utf8Value() == "GL_TEXTURE_RECTANGLE"))

@@ -1,28 +1,24 @@
-import { SyphonOpenGLServer } from 'node-syphon';
+import { SyphonMetalServer } from 'node-syphon';
 
 let interval;
 const test = () => {
-  const serverOne = new SyphonOpenGLServer('OpenGL Server 1');
-  const serverTwo = new SyphonOpenGLServer('OpenGL Server 2');
+  const serverOne = new SyphonMetalServer('Metal Server');
   console.log('Created', serverOne.serverDescription);
-  console.log('Created', serverTwo.serverDescription);
 
   // It's up to the user to deallocate the server.
   [`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
     process.on(eventType, () => {
       serverOne.dispose();
-      serverTwo.dispose();
       clearInterval(interval);
     });
   });
 
   interval = setInterval(() => {
     sendToServer(serverOne);
-    sendToServer(serverTwo, 128);
   }, 1000 / 60);
 };
 
-const sendToServer = (server: SyphonOpenGLServer, clamp = 255) => {
+const sendToServer = (server: SyphonMetalServer, clamp = 255) => {
   const size = 50 * 50 * 4;
   let data: any = new Uint8ClampedArray(size);
 
@@ -35,13 +31,7 @@ const sendToServer = (server: SyphonOpenGLServer, clamp = 255) => {
     }
 
     try {
-      server.publishImageData(
-        data,
-        'GL_TEXTURE_2D',
-        { x: 0, y: 0, width: 50, height: 50 },
-        { width: 50, height: 50 },
-        false
-      );
+      server.publishImageData(data, { x: 0, y: 0, width: 50, height: 50 }, 4, false);
     } catch (err) {
       console.error(err);
     }
