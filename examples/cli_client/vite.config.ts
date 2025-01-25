@@ -12,7 +12,7 @@ export default defineConfig({
     },
     minify: 'terser',
     rollupOptions: {
-      external: ['bindings', 'node-addon-api', 'node-syphon', ...builtinModules],
+      external: ['node-syphon', ...builtinModules],
     },
     outDir: path.resolve(__dirname, 'dist'),
   },

@@ -12,10 +12,7 @@
     "start": "node dist/example_server.mjs"
   },
   "devDependencies": {
-    "@types/bindings": "^1.5.1",
     "@types/node": "^20.4.5",
-    "node-gyp": "^9.4.0",
-    "rimraf": "^5.0.1",
     "terser": "^5.19.2",
     "vite": "^4.4.7",
     "vite-plugin-dts": "^3.3.1",

@@ -46,7 +46,6 @@ const test = () => {
     directory.listen();
 
     interval = setInterval(async () => {
-      // console.log('YOP', directory.servers);
       if (directory.servers.length > 0 && !client) {
         console.log('Create');
         client = new SyphonOpenGLClient(directory.servers[directory.servers.length - 1]);
