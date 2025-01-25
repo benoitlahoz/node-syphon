@@ -1,5 +1,5 @@
 {
-  "name": "node-syphon-cli-server-example",
+  "name": "node-syphon-cli-client-gl-example",
   "version": "0.1.0",
   "license": "GPL-3.0+",
   "author": {
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "vite build --config vite.config.ts",
-    "start": "node dist/example_server.mjs"
+    "start": "node dist/example_client.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.4.5",
