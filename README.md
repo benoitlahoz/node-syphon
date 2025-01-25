@@ -1,5 +1,7 @@
 # node-syphon
 
+**WARNING: This package is VERY experimental. Use at your own risks.**
+
 Experimental and superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syphon-Framework) and `node.js`.
 
 As of `v0.4.0` node-syphon provides ways to listen to servers' directory, **copy pixels** to a server and **get pixels** from a client. Using a zero copy texture is on the roadmap, see **TODO** section for texture binding (contributors welcome).
@@ -27,7 +29,7 @@ In Syphon Framework's XCode project:
 - Remove any code signing rule.
 
 `yarn build`
-This will build Syphon, the node-addon and the JS library and copy everythong in the `dist` folder.
+This will build Syphon, the node-addon and the JS library and copy everything in the `dist` folder.
 
 ## Usage
 
@@ -106,6 +108,7 @@ const interval = setInterval(() => {
     data,
 
     // Region.
+
     { x: 0, y: 0, width: 50, height: 50 },
 
     // Bytes per row.
