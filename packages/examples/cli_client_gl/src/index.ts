@@ -55,7 +55,7 @@ const test = () => {
         client.dispose();
         client = null;
       } else if (client) {
-        console.log(await client.newFrame);
+        console.log(await client.getFrame());
         console.log(client.width, client.height);
       }
     }, 1000 / 60);

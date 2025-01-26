@@ -10,7 +10,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "vite build --config vite.config.ts",
-    "start": "node dist/example_client.mjs"
+    "start": "node dist/index.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.4.5",
