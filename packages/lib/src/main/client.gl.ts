@@ -7,7 +7,10 @@ export class SyphonOpenGLClient {
   private _onFrameListeners: Array<(data?: Uint8ClampedArray) => void>;
   private _frameInterval: any;
 
-  constructor(description: SyphonServerDescription) {
+  constructor(
+    description: SyphonServerDescription,
+    public readonly framerate = 60
+  ) {
     this._client = new SyphonAddon.OpenGLClient(description);
     this._onFrameListeners = [];
   }
@@ -32,7 +35,7 @@ export class SyphonOpenGLClient {
               // fn(new Uint8ClampedArray(frame));
               fn(frame);
             }
-          }, 1000 / 60);
+          }, 1000 / this.framerate);
         }
         this._onFrameListeners.push(callback);
       }
