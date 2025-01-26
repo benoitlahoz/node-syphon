@@ -16,5 +16,9 @@
   "resolutions": {
     "string-width": "^4.2.0",
     "wrap-ansi": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=20.17.0",
+    "npm": ">11.0.0"
   }
 }
