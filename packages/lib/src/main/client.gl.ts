@@ -31,8 +31,7 @@ export class SyphonOpenGLClient {
           // Begin loop: Pull frame.
           this._frameInterval = setInterval(async () => {
             for (const fn of this._onFrameListeners) {
-              const frame = await this._client.newFrame();
-              // fn(new Uint8ClampedArray(frame));
+              const frame = await this.getFrame();
               fn(frame);
             }
           }, 1000 / this.framerate);
@@ -58,9 +57,9 @@ export class SyphonOpenGLClient {
     }
   }
 
-  public get newFrame(): any {
-    // TODO: Not a getter -> async (returns a Promise)
-    return this._client.newFrame();
+  public async getFrame(): Promise<any> {
+    const nativeBuffer: Buffer = await this._client.getFrame();
+    return nativeBuffer.buffer;
   }
 
   public get width(): number {
