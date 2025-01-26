@@ -21,10 +21,11 @@ public:
 
   void Execute()
   {
-    // Napi::HandleScope scope(this->Env());
+    // FIXME: To use this (which seems to be the normal way to do it) we'll have to 'properly lock to enter in V8 API' (?).
 
+    // Napi::HandleScope scope(this->Env());
     // this->m_result = Napi::ArrayBuffer::New(this->Env(), this->m_pixel_buffer, this->m_width * this->m_height * 4);
-    delete[] this->m_pixel_buffer;
+    // this->m_result = Napi::Buffer<uint8_t>::Copy(this->Env(), this->m_pixel_buffer, this->m_width * this->m_height * 4)
   }
 
   void OnOK()
@@ -32,7 +33,19 @@ public:
 
     Napi::HandleScope scope(this->Env());
     // this->deferred.Resolve(this->m_result);
-    this->deferred.Resolve(Napi::ArrayBuffer::New(this->Env(), this->m_pixel_buffer, this->m_width * this->m_height * 4));
+
+    // For the record: os forbidden with Electron >= 21
+    // See: https://www.electronjs.org/blog/v8-memory-cage and the solution at the end of the article.
+    // https://github.com/nodejs/node-addon-api/blob/main/doc/external_buffer.md
+    //
+    // auto buffer = Napi::ArrayBuffer::New(this->Env(), this->m_pixel_buffer, this->m_width * this->m_height * 4);
+
+  
+    auto buffer = Napi::Buffer<uint8_t>::NewOrCopy(this->Env(), this->m_pixel_buffer, this->m_width * this->m_height * 4, [](Napi::BasicEnv, void* finalizeData) {
+      // Delete the pixel buffer.
+      delete[] static_cast<uint8_t*>(finalizeData);
+    });
+    this->deferred.Resolve(buffer);
 
     return;
   }
@@ -50,7 +63,7 @@ private:
   size_t m_width;
   size_t m_height;
 
-  Napi::ArrayBuffer m_result;
+  // Napi::Buffer<uint8_t> m_result;
 };
 
 #endif

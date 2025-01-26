@@ -114,7 +114,9 @@
     // obj.Set("SyphonServerDescriptionIconKey", [[description objectForKey:SyphonServerDescriptionIconKey] UTF8String]);
     NSImage *icon = [description objectForKey:SyphonServerDescriptionIconKey];
     uint8_t * buffer = [NodeSyphonHelpers imageToBuffer:[description objectForKey:SyphonServerDescriptionIconKey]];
-    Napi::Value result = Napi::ArrayBuffer::New(env, buffer, icon.size.width * icon.size.height * 4);
+
+    // TODO: heck if we have to free the buffer in the finalizer.
+    Napi::Value result = Napi::Buffer<uint8_t>::NewOrCopy(env, buffer, icon.size.width * icon.size.height * 4 /* Finalizer ? */);
     obj.Set("SyphonServerDescriptionIconKey", result);
     delete [] buffer;
   }

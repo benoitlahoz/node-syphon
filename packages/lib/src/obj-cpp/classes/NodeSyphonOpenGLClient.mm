@@ -152,17 +152,19 @@ Napi::Value SyphonOpenGLClientWrapper::GetFrame(const Napi::CallbackInfo& info)
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
 
-  uint8_t* pixelBuffer = _DrawFrame(m_client);
+  uint8_t* pixel_buffer = _DrawFrame(m_client);
   Napi::Promise::Deferred deferred = Napi::Promise::Deferred::New(env);
-  NodeSyphonFramePromiseWorker *worker = new NodeSyphonFramePromiseWorker(deferred, pixelBuffer, m_width, m_height);
 
-  // Do not delete pixel buffer: Promise will do it.
+  NodeSyphonFramePromiseWorker *worker = new NodeSyphonFramePromiseWorker(deferred, pixel_buffer, m_width, m_height);
 
   worker->SuppressDestruct();
   worker->Queue();  
 
-  return deferred.Promise();
+  auto promise = deferred.Promise();
 
+  // Buffer will be delerted in promise.
+  // delete[] pixel_buffer;
+  return promise;
 }
 
 Napi::Value SyphonOpenGLClientWrapper::Width(const Napi::CallbackInfo &info) {
@@ -219,6 +221,7 @@ void SyphonOpenGLClientWrapper::_CreateCurrentContext(Napi::Env env) {
 }
 
 uint8_t *SyphonOpenGLClientWrapper::_DrawFrame(SyphonOpenGLClient *client) {
+
   SyphonOpenGLImage *frame = [client newFrameImage];
   m_width = [frame textureSize].width;
   m_height = [frame textureSize].height;
@@ -278,7 +281,7 @@ Napi::Object SyphonOpenGLClientWrapper::Init(Napi::Env env, Napi::Object exports
     // Methods.
 
     InstanceMethod("dispose", &SyphonOpenGLClientWrapper::Dispose),
-    InstanceMethod("newFrame", &SyphonOpenGLClientWrapper::GetFrame),
+    InstanceMethod("getFrame", &SyphonOpenGLClientWrapper::GetFrame),
 
     // Accessors.
 
