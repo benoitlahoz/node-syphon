@@ -1,6 +1,6 @@
 {
   "name": "node-syphon",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "license": "GPL-3.0+",
   "description": "Experimental and superficial bindings between Syphon-Framework and node.js.",
   "author": {
@@ -43,7 +43,7 @@
   "devDependencies": {
     "@types/bindings": "^1.5.1",
     "@types/node": "^20.4.5",
-    "node-addon-api": "^7.0.0",
+    "node-addon-api": "^8.3.0",
     "node-gyp": "^9.4.0",
     "rimraf": "^5.0.1",
     "terser": "^5.19.2",
