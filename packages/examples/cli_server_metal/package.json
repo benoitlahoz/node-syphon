@@ -1,0 +1,25 @@
+{
+  "name": "cli-server-metal",
+  "version": "0.1.0",
+  "license": "GPL-3.0+",
+  "author": {
+    "name": "Benoît LAHOZ",
+    "url": "https://www.benoitlahoz.io",
+    "email": "info@benoitlahoz.io"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "vite build --config vite.config.ts",
+    "start": "node dist/index.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.5",
+    "terser": "^5.19.2",
+    "vite": "^4.4.7",
+    "vite-plugin-dts": "^3.3.1",
+    "vite-plugin-static-copy": "^0.17.0"
+  },
+  "dependencies": {
+    "node-syphon": "^0.4.0"
+  }
+}

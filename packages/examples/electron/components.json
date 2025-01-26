@@ -1,0 +1,14 @@
+{
+  "style": "default",
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/renderer/src/globals.css",
+    "baseColor": "zinc",
+    "cssVariables": true
+  },
+  "typescript": true,
+  "aliases": {
+    "components": "src/renderer/src/components",
+    "utils": "src/renderer/src/lib/utils"
+  }
+}
