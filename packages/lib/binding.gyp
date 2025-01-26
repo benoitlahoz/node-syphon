@@ -21,7 +21,8 @@
                 "<!(node -p \"require('node-addon-api').gyp\")"
             ],
             'defines': [
-                'NAPI_CPP_EXCEPTIONS'
+                'NAPI_CPP_EXCEPTIONS',
+                'NODE_API_NO_EXTERNAL_BUFFERS_ALLOWED'
             ],
             'conditions': [
                 ['OS=="mac"', {
