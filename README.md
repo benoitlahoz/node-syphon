@@ -13,11 +13,14 @@ At the time of building my own multiplatform apps, using `Electron` and web tech
 
 ## Install
 
-For the time being, `node-syphon` is not released as a `npm` package (see [here](https://stackoverflow.com/questions/79384958/publish-a-npm-package-that-contains-a-cocoa-framework-build)) and cannot be installed like this.
-
-It can be installed with embedded Syphon dependency via `yarn add https://github.com/benoitlahoz/node-syphon/packages/lib`.
+```sh
+yarn add node-syphon
+```
 
 ## Build
+
+Clone:
+`git clone https://github.com/benoitlahoz/node-syphon.git`
 
 Add Syphon:
 `git submodule update --init`
@@ -28,7 +31,15 @@ In Syphon Framework's XCode project:
 - Replace the _Dynamic Library Install Name Base_ property with this `@rpath`.
 - Remove any code signing rule.
 
+Install monorepo:
+`yarn`
+
+Bootstrap Lerna:
+`lerna bootstrap`
+
+Build library and examples:
 `yarn build`
+
 This will build Syphon, the node-addon and the JS library and copy everything in the `dist` folder.
 
 ## Usage
