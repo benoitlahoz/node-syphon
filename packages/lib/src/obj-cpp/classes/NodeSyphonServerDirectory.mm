@@ -23,7 +23,7 @@ void sigHandler(int sig) {
 
     // This is the same as our instance's _Dispose method.
     
-    printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessageKey\": \"Signal handler called...\"}--__node-syphon-delimiter__--");
+    printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessage\": \"Signal handler called: stopping NSRunLoop...\"}--__node-syphon-delimiter__--");
     
     CFRunLoopStop([[NSRunLoop currentRunLoop] getCFRunLoop]);
 
@@ -128,6 +128,7 @@ void SyphonServerDirectoryWrapper::Listen(const Napi::CallbackInfo& info)
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
 
+  // Very hacky way to communicate with main process from spawn server directory.
   printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessage\": \"Listening to Syphon directory server notifications...\"}--__node-syphon-delimiter__--");
 
   _announce_observer = [[NSNotificationCenter defaultCenter] addObserverForName:SyphonServerAnnounceNotification
