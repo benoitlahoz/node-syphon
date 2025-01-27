@@ -8,11 +8,17 @@
             'cflags_cc+': ['-f-exceptions', '-frtti'],
             'sources': [
                 # Helpers.
-                "<!@(node -p \"require('fs').readdirSync('./src/obj-cpp/helpers').map(f=>'src/obj-cpp/helpers/'+f).join(' ')\")",
-                # Classes.
-                "<!@(node -p \"require('fs').readdirSync('./src/obj-cpp/classes').map(f=>'src/obj-cpp/classes/'+f).join(' ')\")",
+                "<!@(node -p \"require('fs').readdirSync('./src/addon/helpers').map(f=>'src/addon/helpers/'+f).join(' ')\")",
+                # Directory.
+                "<!@(node -p \"require('fs').readdirSync('./src/addon/directory').map(f=>'src/addon/directory/'+f).join(' ')\")",
+                # Client.
+                "<!@(node -p \"require('fs').readdirSync('./src/addon/client').map(f=>'src/addon/client/'+f).join(' ')\")",
+                # Server.
+                "<!@(node -p \"require('fs').readdirSync('./src/addon/server').map(f=>'src/addon/server/'+f).join(' ')\")",
+                # Promises.
+                "<!@(node -p \"require('fs').readdirSync('./src/addon/promises').map(f=>'src/addon/promises/'+f).join(' ')\")",
                 # Main.
-                "<!@(node -p \"require('fs').readdirSync('./src/obj-cpp').map(f=>'src/obj-cpp/'+f).join(' ')\")",
+                "<!@(node -p \"require('fs').readdirSync('./src/addon').map(f=>'src/addon/'+f).join(' ')\")",
             ],
             'include_dirs': [
                 "<!@(node -p \"require('node-addon-api').include\")"
