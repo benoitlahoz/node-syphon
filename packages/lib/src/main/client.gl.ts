@@ -2,6 +2,12 @@ import { SyphonAddon } from '../common/addon';
 
 import type { SyphonServerDescription } from '../common/types';
 
+// TODO: Test with window handle.
+export interface SyphonOpenGLClientConstructorOptions {
+  server: SyphonServerDescription;
+  handle?: Buffer;
+}
+
 export class SyphonOpenGLClient {
   private _client: any;
   private _onFrameListeners: Array<(data?: Uint8ClampedArray) => void>;
