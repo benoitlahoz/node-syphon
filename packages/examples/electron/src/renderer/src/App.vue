@@ -26,6 +26,8 @@ const ipcInvoke = window.electron.ipcRenderer.invoke;
 const servers = ref<SyphonServerDescription[]>([]);
 
 const canvasRef = ref();
+const width = ref(800);
+const height = ref(600);
 
 onMounted(async () => {
   // Get already running servers.
@@ -60,6 +62,8 @@ onMounted(async () => {
 
   ipcOn('new-frame', (_, payload: SyphonGLFrameDTO) => {
     const canvas = canvasRef.value;
+    width.value = payload.width;
+    height.value = payload.height;
     const data = new ImageData(new Uint8ClampedArray(payload.data), payload.width, payload.height);
     const ctx = canvas.getContext('2d');
     ctx.putImageData(data, 0, 0);
@@ -110,7 +114,9 @@ const onChange = async (uuid: string) => {
           ) {{ server[SyphonServerDescriptionAppNameKey] }}
   .w-full.flex.flex-1.pt-4 
     canvas(
-      ref="canvasRef"
+      ref="canvasRef",
+      :width="width",
+      :height="height"
     ).bg-black.w-full.grow-1
 </template>
 
