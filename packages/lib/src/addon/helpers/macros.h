@@ -15,7 +15,13 @@
 
 #define IS_BUFFER(value) (value.IsBuffer())
 
-#define IS_TEXTURE_TARGET(value) (value.IsString() && (value.As<Napi::String>().Utf8Value() == "GL_TEXTURE_RECTANGLE_EXT" || value.As<Napi::String>().Utf8Value() == "GL_TEXTURE_2D" || value.As<Napi::String>().Utf8Value() == "GL_TEXTURE_RECTANGLE"))
+#define IS_TEXTURE_TARGET(value) (value.IsString() && (value.As<Napi::String>().Utf8Value() == "GL_TEXTURE_RECTANGLE_EXT" || value.As<Napi::String>().Utf8Value() == "GL_TEXTURE_2D"))
+
+#define IS_SERVER_DESCRIPTION(value) value.Has("SyphonServerDescriptionAppNameKey") && \
+                                     value.Has("SyphonServerDescriptionNameKey") && \
+                                     value.Has("SyphonServerDescriptionUUIDKey") && \
+                                     value.Has("SyphonServerDescriptionDictionaryVersionKey") && \
+                                     value.Has("SyphonServerDescriptionSurfacesKey")
 
 #pragma mark Converters
 

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 
-#include "NodeSyphonMetalServer.h"
+#include "MetalServer.h"
 
 #import "../helpers/NodeSyphonHelpers.h"
 
@@ -9,13 +9,13 @@ using namespace syphon;
 
 // #define SYPHON_CORE_SHARE 1
 
-Napi::FunctionReference SyphonMetalServerWrapper::constructor;
+Napi::FunctionReference MetalServerWrapper::constructor;
 
 /**
  * The SyphonMetalServer constructor.
  */
-SyphonMetalServerWrapper::SyphonMetalServerWrapper(const Napi::CallbackInfo& info)
-: Napi::ObjectWrap<SyphonMetalServerWrapper>(info)
+MetalServerWrapper::MetalServerWrapper(const Napi::CallbackInfo& info)
+: Napi::ObjectWrap<MetalServerWrapper>(info)
 {
 
 
@@ -56,7 +56,7 @@ SyphonMetalServerWrapper::SyphonMetalServerWrapper(const Napi::CallbackInfo& inf
 /**
  * The SyphonMetalServer destructor: will call Dispose on server and tear-down any resources associated.
  */
-SyphonMetalServerWrapper::~SyphonMetalServerWrapper()
+MetalServerWrapper::~MetalServerWrapper()
 {
   printf("Syphon server destructor will call dispose.\n");
   _Dispose();
@@ -64,7 +64,7 @@ SyphonMetalServerWrapper::~SyphonMetalServerWrapper()
 
 #pragma mark Static methods.
 
-bool SyphonMetalServerWrapper::HasInstance(Napi::Value value)
+bool MetalServerWrapper::HasInstance(Napi::Value value)
 {
   return value.As<Napi::Object>().InstanceOf(constructor.Value());
 }
@@ -75,13 +75,13 @@ bool SyphonMetalServerWrapper::HasInstance(Napi::Value value)
 /**
  * Dealloc server and tear-down any resources associated.
  */
-void SyphonMetalServerWrapper::Dispose(const Napi::CallbackInfo& info)
+void MetalServerWrapper::Dispose(const Napi::CallbackInfo& info)
 {
   printf("Syphon server dispose method will call dispose.\n");
   _Dispose();
 }
 
-void SyphonMetalServerWrapper::_Dispose() {
+void MetalServerWrapper::_Dispose() {
 
   printf("Syphon server will dispose.\n");
 
@@ -92,7 +92,7 @@ void SyphonMetalServerWrapper::_Dispose() {
 
 }
 
-void SyphonMetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
+void MetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
 {
 
   Napi::Env env = info.Env();
@@ -158,9 +158,9 @@ void SyphonMetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
 
     [cmd commit];
 
-    auto channel_callbacks = SyphonMetalServerWrapper::m_listeners.find("message");
+    auto channel_callbacks = MetalServerWrapper::m_listeners.find("message");
 
-    if (channel_callbacks != SyphonMetalServerWrapper::m_listeners.end()) {
+    if (channel_callbacks != MetalServerWrapper::m_listeners.end()) {
 
       std::vector<Napi::ThreadSafeFunction> callbacks = channel_callbacks->second;
 
@@ -192,24 +192,24 @@ void SyphonMetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
 
 // Getters.
 
-Napi::Value SyphonMetalServerWrapper::GetName(const Napi::CallbackInfo &info) 
+Napi::Value MetalServerWrapper::GetName(const Napi::CallbackInfo &info) 
 {
   return Napi::String::New(info.Env(), [[m_server name] UTF8String]);
 }
 
-Napi::Value SyphonMetalServerWrapper::GetServerDescription(const Napi::CallbackInfo &info) 
+Napi::Value MetalServerWrapper::GetServerDescription(const Napi::CallbackInfo &info) 
 {
   return [NodeSyphonHelpers serverDescription:[m_server serverDescription] info:info];
 }
 
-Napi::Value SyphonMetalServerWrapper::HasClients(const Napi::CallbackInfo &info) 
+Napi::Value MetalServerWrapper::HasClients(const Napi::CallbackInfo &info) 
 {
   return Napi::Boolean::New(info.Env(), [m_server hasClients]);
 }
 
 // Class definition.
 
-Napi::Object SyphonMetalServerWrapper::Init(Napi::Env env, Napi::Object exports)
+Napi::Object MetalServerWrapper::Init(Napi::Env env, Napi::Object exports)
 {
 
 	Napi::HandleScope scope(env);
@@ -218,15 +218,15 @@ Napi::Object SyphonMetalServerWrapper::Init(Napi::Env env, Napi::Object exports)
 
     // Methods.
 
-    InstanceMethod("publishImageData", &SyphonMetalServerWrapper::PublishImageData),
-    // InstanceMethod("publishFrameTexture", &SyphonMetalServerWrapper::PublishFrameTexture),
-    InstanceMethod("dispose", &SyphonMetalServerWrapper::Dispose),
+    InstanceMethod("publishImageData", &MetalServerWrapper::PublishImageData),
+    // InstanceMethod("publishFrameTexture", &MetalServerWrapper::PublishFrameTexture),
+    InstanceMethod("dispose", &MetalServerWrapper::Dispose),
 
     // Accessors.
 
-    InstanceAccessor("name", &SyphonMetalServerWrapper::GetName, nullptr, napi_enumerable),
-    InstanceAccessor("serverDescription", &SyphonMetalServerWrapper::GetServerDescription, nullptr, napi_enumerable),
-    InstanceAccessor("hasClients", &SyphonMetalServerWrapper::HasClients, nullptr, napi_enumerable),    
+    InstanceAccessor("name", &MetalServerWrapper::GetName, nullptr, napi_enumerable),
+    InstanceAccessor("serverDescription", &MetalServerWrapper::GetServerDescription, nullptr, napi_enumerable),
+    InstanceAccessor("hasClients", &MetalServerWrapper::HasClients, nullptr, napi_enumerable),    
 
   });
 

@@ -3,7 +3,6 @@
 
 #include <napi.h>
 #include <OpenGL/gl.h>
-#include <OpenGL/gl3.h>
 
 #import <Foundation/Foundation.H>
 #import <Cocoa/Cocoa.h>
@@ -13,10 +12,6 @@
 
 
 @interface NodeSyphonHelpers : NSObject
-
-+ (CGLContextObj)createCGLContextWithInfo:(const Napi::CallbackInfo &)info;
-
-+ (uint8_t *)bufferWithOpenGLFrame:(SyphonOpenGLImage *)frame;
 
 + (Napi::Object)
     serverDescription:(NSDictionary *)description

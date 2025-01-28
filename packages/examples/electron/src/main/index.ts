@@ -1,8 +1,22 @@
+import os from 'os';
 import { app, shell, BrowserWindow } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
 import { bootstrapSyphon, closeSyphon } from './syphon';
+
+// https://stackoverflow.com/questions/55994212/how-use-the-returned-buffer-of-electronjs-function-getnativewindowhandle-i
+function getNativeWindowHandle_Int(win) {
+  let hbuf = win.getNativeWindowHandle();
+
+  if (os.endianness() == 'LE') {
+    console.log('ENDIAN LE');
+    return hbuf.readInt32LE();
+  } else {
+    console.log('ENDIAN BE');
+    return hbuf.readInt32BE();
+  }
+}
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -14,10 +28,12 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
+      backgroundThrottling: false,
     },
   });
 
   mainWindow.on('ready-to-show', () => {
+    console.log('Window handle', getNativeWindowHandle_Int(mainWindow));
     mainWindow.show();
   });
 

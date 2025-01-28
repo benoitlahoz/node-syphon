@@ -1,5 +1,5 @@
-#ifndef ___NODE_SYPHON_OPENGL_SERVER_H___
-#define ___NODE_SYPHON_OPENGL_SERVER_H___
+#ifndef ___OPENGL_SERVER_H___
+#define ___OPENGL_SERVER_H___
 
 #include <napi.h>
 #include <map>
@@ -10,8 +10,6 @@
 #import <Syphon/Syphon.h>
 
 #include <OpenGL/gl.h>
-#include <OpenGL/gl3.h>
-#include <OpenGL/glExt.h>
 
 // Macros.
 
@@ -20,14 +18,14 @@
 namespace syphon
 {
 
-  class SyphonOpenGLServerWrapper : public Napi::ObjectWrap<SyphonOpenGLServerWrapper>
+  class OpenGLServerWrapper : public Napi::ObjectWrap<OpenGLServerWrapper>
   {
 
   public:
     static Napi::Object Init(Napi::Env env, Napi::Object exports);
 
-    SyphonOpenGLServerWrapper(const Napi::CallbackInfo &info);
-    ~SyphonOpenGLServerWrapper();
+    OpenGLServerWrapper(const Napi::CallbackInfo &info);
+    ~OpenGLServerWrapper();
 
     static bool HasInstance(Napi::Value value);
 

@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 
-#include "NodeSyphonServerDirectory.h"
-
-#include "../helpers/NodeSyphonHelpers.h"
+#include "ServerDirectory.h"
 
 #define NodeSyphonMessageTypeKey @"NodeSyphonMessageType"
 #define NodeSyphonMessageKey @"NodeSyphonMessage"
@@ -40,7 +38,6 @@ void sigHandler(int sig) {
 
 NSString * toJSON(NSString *type, NSDictionary *dic) {
 
-    // TODO: tryCatch here...
     NSString *json = [NSString stringWithFormat:
                         @"{"
                         @"\"%@\": \"%@\","
@@ -96,9 +93,9 @@ NSString * toJSON(NSString *type, NSDictionary *dic) {
 
 using namespace syphon;
 
-Napi::FunctionReference SyphonServerDirectoryWrapper::constructor;
-SyphonServerDirectoryWrapper::SyphonServerDirectoryWrapper(const Napi::CallbackInfo& info)
-: Napi::ObjectWrap<SyphonServerDirectoryWrapper>(info)
+Napi::FunctionReference ServerDirectoryWrapper::constructor;
+ServerDirectoryWrapper::ServerDirectoryWrapper(const Napi::CallbackInfo& info)
+: Napi::ObjectWrap<ServerDirectoryWrapper>(info)
 {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
@@ -110,20 +107,17 @@ SyphonServerDirectoryWrapper::SyphonServerDirectoryWrapper(const Napi::CallbackI
   signal(SIGTERM, sigHandler);
 }
 
-/**
- * The SyphonOpenGLServer destructor: will call dealloc on server and tear-down any resources associated.
- */
-SyphonServerDirectoryWrapper::~SyphonServerDirectoryWrapper()
+ServerDirectoryWrapper::~ServerDirectoryWrapper()
 {
   _Dispose();
 }
 
-void SyphonServerDirectoryWrapper::Dispose(const Napi::CallbackInfo& info)
+void ServerDirectoryWrapper::Dispose(const Napi::CallbackInfo& info)
 {
   _Dispose();
 }
 
-void SyphonServerDirectoryWrapper::Listen(const Napi::CallbackInfo& info)
+void ServerDirectoryWrapper::Listen(const Napi::CallbackInfo& info)
 {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
@@ -158,7 +152,7 @@ void SyphonServerDirectoryWrapper::Listen(const Napi::CallbackInfo& info)
     [[NSRunLoop currentRunLoop] run];
 }
 
-void SyphonServerDirectoryWrapper::_Dispose() {
+void ServerDirectoryWrapper::_Dispose() {
 
     printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessage\": \"Deallocation of server directory listener...\"}--__node-syphon-delimiter__--");
     if (_announce_observer) {
@@ -177,7 +171,7 @@ void SyphonServerDirectoryWrapper::_Dispose() {
 
 // Class definition.
 
-Napi::Object SyphonServerDirectoryWrapper::Init(Napi::Env env, Napi::Object exports)
+Napi::Object ServerDirectoryWrapper::Init(Napi::Env env, Napi::Object exports)
 {
   Napi::HandleScope scope(env);
 
@@ -185,8 +179,8 @@ Napi::Object SyphonServerDirectoryWrapper::Init(Napi::Env env, Napi::Object expo
 
     // Methods.
 
-    InstanceMethod("listen", &SyphonServerDirectoryWrapper::Listen),
-    InstanceMethod("dispose", &SyphonServerDirectoryWrapper::Dispose),
+    InstanceMethod("listen", &ServerDirectoryWrapper::Listen),
+    InstanceMethod("dispose", &ServerDirectoryWrapper::Dispose),
 
   });
 

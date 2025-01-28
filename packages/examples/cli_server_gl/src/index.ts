@@ -4,6 +4,16 @@ let interval;
 const test = () => {
   const serverOne = new SyphonOpenGLServer('OpenGL Server 1');
   const serverTwo = new SyphonOpenGLServer('OpenGL Server 2');
+
+  // SIGSEV when parameter.
+  serverOne.on('frame', (frame: Uint8Array) => {
+    console.log('Hey', frame);
+  });
+  /*
+  serverOne.on('frame', (frame: Uint8Array) => {
+    console.log('Ho', frame);
+  });
+  */
   console.log('Created', serverOne.serverDescription);
   console.log('Created', serverTwo.serverDescription);
 

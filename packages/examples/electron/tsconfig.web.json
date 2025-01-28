@@ -5,7 +5,7 @@
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.vue",
     "src/preload/*.d.ts",
-    "src/type.ts"
+    "src/types.ts"
   ],
   "compilerOptions": {
     "moduleResolution": "bundler",

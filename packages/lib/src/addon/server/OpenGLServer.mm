@@ -1,21 +1,19 @@
 #include <stdio.h>
 #include <iostream>
 
-#include "NodeSyphonOpenGLServer.h"
+#include "OpenGLServer.h"
 
 #import "../helpers/NodeSyphonHelpers.h"
 
 using namespace syphon;
 
-// #define SYPHON_CORE_SHARE 1
-
-Napi::FunctionReference SyphonOpenGLServerWrapper::constructor;
+Napi::FunctionReference OpenGLServerWrapper::constructor;
 
 /**
  * The SyphonOpenGLServer constructor.
  */
-SyphonOpenGLServerWrapper::SyphonOpenGLServerWrapper(const Napi::CallbackInfo& info)
-: Napi::ObjectWrap<SyphonOpenGLServerWrapper>(info)
+OpenGLServerWrapper::OpenGLServerWrapper(const Napi::CallbackInfo& info)
+: Napi::ObjectWrap<OpenGLServerWrapper>(info)
 {
 
 
@@ -56,7 +54,7 @@ SyphonOpenGLServerWrapper::SyphonOpenGLServerWrapper(const Napi::CallbackInfo& i
 
     // Trigger eventual listeners.
     // env.SetInstanceData(this);
-    // SyphonOpenGLServerWrapper::_OnServerCreated(info);
+    // OpenGLServerWrapper::_OnServerCreated(info);
 
   } catch (char const *err)
   {
@@ -70,7 +68,7 @@ SyphonOpenGLServerWrapper::SyphonOpenGLServerWrapper(const Napi::CallbackInfo& i
 /**
  * The SyphonOpenGLServer destructor: will call Dispose on server and tear-down any resources associated.
  */
-SyphonOpenGLServerWrapper::~SyphonOpenGLServerWrapper()
+OpenGLServerWrapper::~OpenGLServerWrapper()
 {
   printf("Syphon server destructor will call dispose.\n");
   _Dispose();
@@ -78,7 +76,7 @@ SyphonOpenGLServerWrapper::~SyphonOpenGLServerWrapper()
 
 #pragma mark Static methods.
 
-bool SyphonOpenGLServerWrapper::HasInstance(Napi::Value value)
+bool OpenGLServerWrapper::HasInstance(Napi::Value value)
 {
   return value.As<Napi::Object>().InstanceOf(constructor.Value());
 }
@@ -89,13 +87,13 @@ bool SyphonOpenGLServerWrapper::HasInstance(Napi::Value value)
 /**
  * Dealloc server and tear-down any resources associated.
  */
-void SyphonOpenGLServerWrapper::Dispose(const Napi::CallbackInfo& info)
+void OpenGLServerWrapper::Dispose(const Napi::CallbackInfo& info)
 {
   printf("Syphon server dispose method will call dispose.\n");
   _Dispose();
 }
 
-void SyphonOpenGLServerWrapper::_Dispose() {
+void OpenGLServerWrapper::_Dispose() {
 
   printf("Syphon server will dispose.\n");
 
@@ -108,7 +106,7 @@ void SyphonOpenGLServerWrapper::_Dispose() {
 }
 
 // Thanks to https://stackoverflow.com/questions/61035830/how-to-create-an-opengl-context-on-an-nodejs-native-addon-on-macos
-void SyphonOpenGLServerWrapper::_CreateCurrentContext(Napi::Env env) {
+void OpenGLServerWrapper::_CreateCurrentContext(Napi::Env env) {
 
   CGLContextObj context;
 
@@ -146,7 +144,7 @@ void SyphonOpenGLServerWrapper::_CreateCurrentContext(Napi::Env env) {
 
 }
 
-void SyphonOpenGLServerWrapper::_GenerateTexture(GLenum textureTarget, GLsizei width, GLsizei height, uint8_t * data) {
+void OpenGLServerWrapper::_GenerateTexture(GLenum textureTarget, GLsizei width, GLsizei height, uint8_t * data) {
   glEnable(textureTarget);
   glBindTexture(textureTarget, _texture);
 
@@ -160,7 +158,7 @@ void SyphonOpenGLServerWrapper::_GenerateTexture(GLenum textureTarget, GLsizei w
 
 }
 
-void SyphonOpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
+void OpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
 {
 
   Napi::Env env = info.Env();
@@ -180,7 +178,7 @@ void SyphonOpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
     }
     
     if (!IS_TEXTURE_TARGET(info[1])) {
-      Napi::TypeError::New(env, "2nd parameter (textureTarget) must be a string containing GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_RECTANGLE or GL_TEXTURE_2D in 'publishImageData'").ThrowAsJavaScriptException();
+      Napi::TypeError::New(env, "2nd parameter (textureTarget) must be a string containing GL_TEXTURE_RECTANGLE_EXT or GL_TEXTURE_2D in 'publishImageData'").ThrowAsJavaScriptException();
     }
 
     if (!IS_RECT(info[2])) {
@@ -202,7 +200,7 @@ void SyphonOpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
   try {
 
     std::string targetString = info[1].As<Napi::String>().Utf8Value();
-    GLenum textureTarget = targetString ==  "GL_TEXTURE_RECTANGLE_EXT" ? GL_TEXTURE_RECTANGLE_EXT : targetString ==  "GL_TEXTURE_2D" ? GL_TEXTURE_2D : GL_TEXTURE_RECTANGLE;
+    GLenum textureTarget = targetString == "GL_TEXTURE_RECTANGLE_EXT" ? GL_TEXTURE_RECTANGLE_EXT : GL_TEXTURE_2D;
 
     Napi::Object region = info[2].As<Napi::Object>();
     Napi::Object size = info[3].As<Napi::Object>();
@@ -239,60 +237,105 @@ void SyphonOpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
 
     glDeleteTextures(1, &_texture);
 
-    CGLUnlockContext([m_server context]);
+    
 
-    auto channel_callbacks = SyphonOpenGLServerWrapper::m_listeners.find("message");
+    auto channel_callbacks = OpenGLServerWrapper::m_listeners.find("frame");
 
-    if (channel_callbacks != SyphonOpenGLServerWrapper::m_listeners.end()) {
+    if (channel_callbacks != OpenGLServerWrapper::m_listeners.end()) {
 
       std::vector<Napi::ThreadSafeFunction> callbacks = channel_callbacks->second;
 
       for (auto it = begin(callbacks); it != end(callbacks); ++it) {
-
         // Calls registered callback.
 
-        Napi::String napiMessageString = info[1].As<Napi::String>();
-        auto callback = [napiMessageString](Napi::Env env, Napi::Function js_callback) {
-          js_callback.Call({napiMessageString});
+        auto callback = [buffer](Napi::Env env, Napi::Function js_callback) {
+          js_callback.Call({buffer});
         };
 
         it->NonBlockingCall(callback);
-
       }
 
     }
+
+    CGLUnlockContext([m_server context]);
 
     // os_unfair_lock_unlock(&m_lock);
 
   } catch (char const *err)
   {
-
+    printf("Error!.\n");
     Napi::Error::New(env, err).ThrowAsJavaScriptException();
 
   }
 
 }
 
+void OpenGLServerWrapper::On(const Napi::CallbackInfo &info)
+{
+
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  if (info.Length() != 2) {
+      Napi::TypeError::New(env, "Listener registration takes 2 arguments.").ThrowAsJavaScriptException();
+    }
+    
+  if (!(info[0].IsString())) {
+    Napi::TypeError::New(env, "1st parameter of 'on' must be a string.").ThrowAsJavaScriptException();
+  }
+
+  if (!(info[1].IsFunction())) {
+    Napi::TypeError::New(env, "2nd parameter of 'on' must be a function.").ThrowAsJavaScriptException();
+  }
+
+  std::string channel = info[0].As<Napi::String>().Utf8Value();
+  Napi::Function callback = info[1].As<Napi::Function>();
+  
+
+  auto channel_callbacks = OpenGLServerWrapper::m_listeners.find(channel);
+
+  if (channel_callbacks != OpenGLServerWrapper::m_listeners.end()) {
+    // Add callback to existing list.
+
+    std::vector<Napi::ThreadSafeFunction> callbacks = channel_callbacks->second;
+
+    std::string resourceName = "FrameCallback_";
+    resourceName += std::to_string(callbacks.size());
+
+    auto threadSafeCallback = Napi::ThreadSafeFunction::New(env, callback, resourceName, 0, 1);
+
+    callbacks.push_back(threadSafeCallback);
+    channel_callbacks->second = callbacks;
+  } else {
+    auto threadSafeCallback = Napi::ThreadSafeFunction::New(env, callback, "FrameCallback_0", 0, 1);
+
+    // Create callbacks list.
+
+    std::vector<Napi::ThreadSafeFunction> callbacks = { threadSafeCallback };
+    OpenGLServerWrapper::m_listeners.insert({ channel, callbacks });
+  }
+}
+
 // Getters.
 
-Napi::Value SyphonOpenGLServerWrapper::GetName(const Napi::CallbackInfo &info) 
+Napi::Value OpenGLServerWrapper::GetName(const Napi::CallbackInfo &info) 
 {
   return Napi::String::New(info.Env(), [[m_server name] UTF8String]);
 }
 
-Napi::Value SyphonOpenGLServerWrapper::GetServerDescription(const Napi::CallbackInfo &info) 
+Napi::Value OpenGLServerWrapper::GetServerDescription(const Napi::CallbackInfo &info) 
 {
   return [NodeSyphonHelpers serverDescription:[m_server serverDescription] info:info];
 }
 
-Napi::Value SyphonOpenGLServerWrapper::HasClients(const Napi::CallbackInfo &info) 
+Napi::Value OpenGLServerWrapper::HasClients(const Napi::CallbackInfo &info) 
 {
   return Napi::Boolean::New(info.Env(), [m_server hasClients]);
 }
 
 // Class definition.
 
-Napi::Object SyphonOpenGLServerWrapper::Init(Napi::Env env, Napi::Object exports)
+Napi::Object OpenGLServerWrapper::Init(Napi::Env env, Napi::Object exports)
 {
 
 	Napi::HandleScope scope(env);
@@ -301,15 +344,16 @@ Napi::Object SyphonOpenGLServerWrapper::Init(Napi::Env env, Napi::Object exports
 
     // Methods.
 
-    InstanceMethod("publishImageData", &SyphonOpenGLServerWrapper::PublishImageData),
-    // InstanceMethod("publishFrameTexture", &SyphonOpenGLServerWrapper::PublishFrameTexture),
-    InstanceMethod("dispose", &SyphonOpenGLServerWrapper::Dispose),
+    InstanceMethod("publishImageData", &OpenGLServerWrapper::PublishImageData),
+    // InstanceMethod("publishFrameTexture", &OpenGLServerWrapper::PublishFrameTexture),
+    InstanceMethod("on", &OpenGLServerWrapper::On),
+    InstanceMethod("dispose", &OpenGLServerWrapper::Dispose),
 
     // Accessors.
 
-    InstanceAccessor("name", &SyphonOpenGLServerWrapper::GetName, nullptr, napi_enumerable),
-    InstanceAccessor("serverDescription", &SyphonOpenGLServerWrapper::GetServerDescription, nullptr, napi_enumerable),
-    InstanceAccessor("hasClients", &SyphonOpenGLServerWrapper::HasClients, nullptr, napi_enumerable),    
+    InstanceAccessor("name", &OpenGLServerWrapper::GetName, nullptr, napi_enumerable),
+    InstanceAccessor("serverDescription", &OpenGLServerWrapper::GetServerDescription, nullptr, napi_enumerable),
+    InstanceAccessor("hasClients", &OpenGLServerWrapper::HasClients, nullptr, napi_enumerable),    
 
   });
 

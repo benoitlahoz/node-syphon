@@ -1,5 +1,5 @@
-#ifndef ___NODE_SYPHON_METAL_SERVER_H___
-#define ___NODE_SYPHON_METAL_SERVER_H___
+#ifndef ___METAL_SERVER_H___
+#define ___METAL_SERVER_H___
 
 #include <napi.h>
 #include <map>
@@ -16,14 +16,14 @@
 namespace syphon
 {
 
-  class SyphonMetalServerWrapper : public Napi::ObjectWrap<SyphonMetalServerWrapper>
+  class MetalServerWrapper : public Napi::ObjectWrap<MetalServerWrapper>
   {
 
   public:
     static Napi::Object Init(Napi::Env env, Napi::Object exports);
 
-    SyphonMetalServerWrapper(const Napi::CallbackInfo &info);
-    ~SyphonMetalServerWrapper();
+    MetalServerWrapper(const Napi::CallbackInfo &info);
+    ~MetalServerWrapper();
 
     static bool HasInstance(Napi::Value value);
 
