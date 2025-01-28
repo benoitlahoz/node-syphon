@@ -13,8 +13,6 @@
 
 @interface NodeSyphonHelpers : NSObject
 
-+ (uint8_t *)bufferWithOpenGLFrame:(SyphonOpenGLImage *)frame;
-
 + (Napi::Object)
     serverDescription:(NSDictionary *)description
                  info:(const Napi::CallbackInfo &)info;

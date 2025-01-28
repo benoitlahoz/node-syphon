@@ -148,7 +148,22 @@ directory.on(
   SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
   (server: any) => {
     console.log('Server announce', server);
-    console.log(directory.servers);
+
+    if (directory.servers.length > 0 && !client) {
+      console.log('Create');
+
+      client = new SyphonOpenGLClient(directory.servers[directory.servers.length - 1]);
+
+      client.on('frame', (frame: FrameDataDefinition) => {
+        console.log('Frame received', frame);
+
+        const buffer: Buffer = frame.buffer;
+        const width: number = frame.width;
+        const height: number = frame.number;
+
+        // ...
+      });
+    }
   }
 );
 
@@ -156,23 +171,8 @@ directory.on(SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification
   console.log('Server retire', server);
   console.log(directory.servers);
 });
-directory.listen();
 
-// Listen, to servers' 'announce' and 'retire', and 'newFrame'.
-// Better in a worker.
-const interval = setInterval(async () => {
-  if (directory.servers.length > 0 && !client) {
-    console.log('Create');
-    client = new SyphonOpenGLClient(directory.servers[directory.servers.length - 1]);
-  } else if (directory.servers.length === 0 && client) {
-    console.log('Dispose');
-    client.dispose();
-    client = null;
-  } else if (client) {
-    console.log(await client.newFrame);
-    console.log(client.width, client.height);
-  }
-}, 1000 / 60);
+directory.listen();
 ```
 
 ## TODO

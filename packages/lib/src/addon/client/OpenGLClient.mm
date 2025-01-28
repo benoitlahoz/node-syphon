@@ -5,8 +5,7 @@
 #include "OpenGLClient.h"
 
 #include "../helpers/NodeSyphonHelpers.h"
-#include "../helpers/OpenGLHelper.h"
-#include "../promises/PixelBufferPromiseWorker.h"
+#include "OpenGLHelper.h"
 
 using namespace syphon;
 
@@ -20,13 +19,13 @@ OpenGLClientWrapper::OpenGLClientWrapper(const Napi::CallbackInfo& info)
 
   if (info.Length() != 1 || !info[0].IsObject())
   {
-    const char * err = "Please provide a server description.";
+    const char * err = "Please provide a valid server description.";
     Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
   }
 
   Napi::Object description = info[0].As<Napi::Object>();
   if (!IS_SERVER_DESCRIPTION(description)) {
-    const char * err = "Unable to create SyphonOpenGLClient: Invalid server description.";
+    const char * err = "Invalid server description.";
     Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
   }
 
@@ -43,11 +42,11 @@ OpenGLClientWrapper::OpenGLClientWrapper(const Napi::CallbackInfo& info)
   NSDictionary *surfaces = [NSDictionary dictionaryWithObjectsAndKeys: @"SyphonSurfaceTypeIOSurface", @"SyphonSurfaceType", nil];
   [serverDescription setObject:[NSArray arrayWithObject:surfaces] forKey:@"SyphonServerDescriptionSurfacesKey"];
 
-  // Bootstrap a context for Syphon.
+  // Bootstrap a context for Syphon client.
   CGLContextObj cgl_ctx = OpenGLHelper::CreateContext(env);
 
-  // Create 'frame' channel listener.
-  m_frame_listener = new FrameEventListener();
+  // Create 'frame' channel's listeners collection.
+  m_frame_listeners = new FrameEventListeners();
 
   m_client = [[SyphonOpenGLClient alloc] initWithServerDescription: [serverDescription copy]
                                                             context: cgl_ctx
@@ -65,16 +64,15 @@ OpenGLClientWrapper::OpenGLClientWrapper(const Napi::CallbackInfo& info)
 
         uint8_t * pixel_buffer = OpenGLHelper::TextureToUint8(texture, width, height);
 
-        m_frame_listener->Call(pixel_buffer, width, height);
+        m_frame_listeners->Call(pixel_buffer, width, height);
 
         [frame release];
 
         CGLSetCurrentContext(NULL);
 
-  }];
+        
 
-  // NSLog(@"After %@", m_client.context);
-  printf("Created !\n");
+  }];
 
   if (![m_client isValid]) {
     Napi::Error::New(env, "SyphonOpenGLClient is not valid.").ThrowAsJavaScriptException();
@@ -92,14 +90,11 @@ OpenGLClientWrapper::~OpenGLClientWrapper()
   }
 }
 
-
-
-
 #pragma mark Instance methods.
 
 void OpenGLClientWrapper::Dispose(const Napi::CallbackInfo& info)
 {
-  // User explicitly called 'dispose'..
+  // User explicitly called 'dispose'.
 
   if (m_client != NULL) {
     [m_client stop];
@@ -129,7 +124,10 @@ void OpenGLClientWrapper::On(const Napi::CallbackInfo &info)
   Napi::Function callback = info[1].As<Napi::Function>();
 
   if (channel == "frame") {
-    m_frame_listener->Add(env, callback);
+    m_frame_listeners->Add(env, callback);
+  } else {
+    std::string err = "String '" + channel + "' is not a valid channel listener.";
+    Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
   }
 }
 

@@ -2,55 +2,6 @@
 
 @implementation NodeSyphonHelpers
 
-// WARNING: It's up to the caller to delete the created buffer.
-+ (uint8_t *) bufferWithOpenGLFrame:(SyphonOpenGLImage *)frame {
-
-  size_t width = [frame textureSize].width;
-  size_t height = [frame textureSize].height;
-
-  uint8_t* pixelBuffer = new uint8_t[width * height * 4];
-  std::memset(pixelBuffer, 0, width * height * 4);
-
-  GLuint fbo;
-
-  CGLLockContext(CGLGetCurrentContext());
-  
-  glGenFramebuffers(1, &fbo);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, [frame textureName], 0);
-
-  glBindTexture(GL_TEXTURE_2D, [frame textureName]);
-
-  glViewport(0, 0, width, height);
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  // glClear(GL_COLOR_BUFFER_BIT); 
-
-  glEnable(GL_TEXTURE_2D);
-  glDisable(GL_DEPTH_TEST);
-
-  glBindTexture(GL_TEXTURE_2D, [frame textureName]);
-
-  glBegin(GL_QUADS);
-  
-  glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
-  glTexCoord2f(width, 0.0f); glVertex2f(1.0f, -1.0f);
-  glTexCoord2f(width, height); glVertex2f(1.0f, 1.0f);
-  glTexCoord2f(0.0f, height); glVertex2f(-1.0f, 1.0f);
-
-  glEnd();
-
-  glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixelBuffer);
-
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glDeleteFramebuffers(1, &fbo);
-
-  [frame release];
-  CGLUnlockContext(CGLGetCurrentContext());
-
-  return pixelBuffer;
-}
-
 /**
  * Creates a Napi::Object with a server description NSDictionary.
  */

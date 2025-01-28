@@ -7,7 +7,7 @@
 #include <Syphon/Syphon.h>
 #include <OpenGL/gl.h>
 #include "../helpers/macros.h"
-#include "../event-listeners/FrameEventListener.h"
+#include "../event-listeners/FrameEventListeners.h"
 
 namespace syphon
 {
@@ -29,7 +29,7 @@ namespace syphon
     static Napi::FunctionReference constructor;
 
     SyphonOpenGLClient * m_client;
-    FrameEventListener * m_frame_listener;
+    FrameEventListeners * m_frame_listeners;
   };
 }
 

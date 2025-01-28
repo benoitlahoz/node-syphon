@@ -1,33 +1,19 @@
 import {
+  FrameDataDefinition,
   SyphonOpenGLClient,
   SyphonServerDirectory,
   SyphonServerDirectoryListenerChannel,
 } from 'node-syphon';
 
-let interval;
 let directory: SyphonServerDirectory;
 let client: SyphonOpenGLClient;
 
-const test = () => {
+const listen = () => {
   try {
     process.stdin.resume();
-    process.on('SIGINT', () => {
-      console.log('SIGINT');
-      directory?.dispose();
-      client?.dispose();
-      process.exit(0);
-    });
-
-    process.on('SIGTERM', () => {
-      console.log('SIGTERM');
-      directory?.dispose();
-      client?.dispose();
-      process.exit(0);
-    });
     [`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach(
       (eventType) => {
         process.on(eventType, () => {
-          console.log('Event', eventType);
           directory?.dispose();
           client?.dispose();
           process.exit(0);
@@ -45,8 +31,12 @@ const test = () => {
         if (directory.servers.length > 0 && !client) {
           console.log('Create');
           client = new SyphonOpenGLClient(directory.servers[directory.servers.length - 1]);
-          client.on('frame', (frame: { data: Buffer; width: number; height: number }) => {
-            console.log(frame);
+          client.on('frame', (frame: FrameDataDefinition) => {
+            console.log('FIRST', frame);
+          });
+
+          client.on('frame', (frame: FrameDataDefinition) => {
+            console.log('SECOND', frame);
           });
         }
       }
@@ -59,6 +49,7 @@ const test = () => {
         console.log(directory.servers);
       }
     );
+
     directory.listen();
   } catch (err) {
     console.error(err);
@@ -66,4 +57,4 @@ const test = () => {
   }
 };
 
-test();
+listen();
