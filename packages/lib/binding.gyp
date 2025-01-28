@@ -17,6 +17,8 @@
                 "<!@(node -p \"require('fs').readdirSync('./src/addon/server').map(f=>'src/addon/server/'+f).join(' ')\")",
                 # Promises.
                 "<!@(node -p \"require('fs').readdirSync('./src/addon/promises').map(f=>'src/addon/promises/'+f).join(' ')\")",
+                # Listeners.
+                "<!@(node -p \"require('fs').readdirSync('./src/addon/event-listeners').map(f=>'src/addon/event-listeners/'+f).join(' ')\")",
                 # Main.
                 "<!@(node -p \"require('fs').readdirSync('./src/addon').map(f=>'src/addon/'+f).join(' ')\")",
             ],

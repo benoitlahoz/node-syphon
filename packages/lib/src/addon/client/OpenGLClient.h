@@ -2,16 +2,12 @@
 #define ___OPENGL_CLIENT_H___
 
 #include <napi.h>
-#include <map>
-
 #include <Foundation/Foundation.H>
 #include <Cocoa/Cocoa.h>
 #include <Syphon/Syphon.h>
 #include <OpenGL/gl.h>
-
-// Macros.
-
 #include "../helpers/macros.h"
+#include "../event-listeners/FrameEventListener.h"
 
 namespace syphon
 {
@@ -27,24 +23,13 @@ namespace syphon
     ~OpenGLClientWrapper();
 
     void Dispose(const Napi::CallbackInfo &info);
-
     void On(const Napi::CallbackInfo &info);
-
-    Napi::Value GetFrame(const Napi::CallbackInfo &info);
-    Napi::Value Width(const Napi::CallbackInfo &info);
-    Napi::Value Height(const Napi::CallbackInfo &info);
 
   private:
     static Napi::FunctionReference constructor;
 
-    void _Dispose();
-
-    uint8_t * ReadPixels(SyphonOpenGLClient *client);
-
-    SyphonOpenGLClient *m_client;
-    uint8_t * m_pixel_buffer;
-    size_t m_width;
-    size_t m_height;
+    SyphonOpenGLClient * m_client;
+    FrameEventListener * m_frame_listener;
   };
 }
 

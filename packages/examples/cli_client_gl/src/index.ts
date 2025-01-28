@@ -11,18 +11,26 @@ let client: SyphonOpenGLClient;
 const test = () => {
   try {
     process.stdin.resume();
+    process.on('SIGINT', () => {
+      console.log('SIGINT');
+      directory?.dispose();
+      client?.dispose();
+      process.exit(0);
+    });
+
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM');
+      directory?.dispose();
+      client?.dispose();
+      process.exit(0);
+    });
     [`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach(
       (eventType) => {
         process.on(eventType, () => {
-          if (client || directory) {
-            console.log('End program', eventType);
-            clearInterval(interval);
-            directory?.dispose();
-            client?.dispose();
-
-            directory = null;
-            client = null;
-          }
+          console.log('Event', eventType);
+          directory?.dispose();
+          client?.dispose();
+          process.exit(0);
         });
       }
     );
@@ -33,9 +41,17 @@ const test = () => {
       SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
       (server: any) => {
         console.log('Server announce', server);
-        console.log(directory.servers);
+
+        if (directory.servers.length > 0 && !client) {
+          console.log('Create');
+          client = new SyphonOpenGLClient(directory.servers[directory.servers.length - 1]);
+          client.on('frame', (frame: { data: Buffer; width: number; height: number }) => {
+            console.log(frame);
+          });
+        }
       }
     );
+
     directory.on(
       SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification,
       (server: any) => {
@@ -44,21 +60,6 @@ const test = () => {
       }
     );
     directory.listen();
-
-    interval = setInterval(async () => {
-      // FIXME: May be the cause of #2
-      if (directory.servers.length > 0 && !client) {
-        console.log('Create');
-        client = new SyphonOpenGLClient(directory.servers[directory.servers.length - 1]);
-      } else if (directory.servers.length === 0 && client) {
-        console.log('Dispose');
-        client.dispose();
-        client = null;
-      } else if (client) {
-        console.log(await client.getFrame());
-        console.log(client.width, client.height);
-      }
-    }, 1000 / 60);
   } catch (err) {
     console.error(err);
     process.exit(0);

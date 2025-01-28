@@ -31,6 +31,7 @@ export class SyphonOpenGLClient {
 
   public on(channel: string, callback: (data: Uint8ClampedArray) => void) {
     // this._client.on(channel, callback);
+    /*
     switch (channel) {
       case 'frame': {
         if (!this._frameInterval) {
@@ -45,6 +46,8 @@ export class SyphonOpenGLClient {
         this._onFrameListeners.push(callback);
       }
     }
+      */
+    this._client.on(channel, callback);
   }
 
   public off(channel: string, callback: (data: Uint8ClampedArray) => void) {
