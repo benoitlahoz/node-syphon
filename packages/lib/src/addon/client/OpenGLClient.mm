@@ -45,30 +45,33 @@ OpenGLClientWrapper::OpenGLClientWrapper(const Napi::CallbackInfo& info)
   // Bootstrap a context for Syphon client.
   CGLContextObj cgl_ctx = OpenGLHelper::CreateContext(env);
 
-  // Create 'frame' listener.
-  m_frame_listener = new FrameEventListener();
+  // Init listener to NULL until a first 'On' is called to bind a callback.
+  m_frame_listener = NULL;
 
   m_client = [[SyphonOpenGLClient alloc] initWithServerDescription: [serverDescription copy]
                                                             context: cgl_ctx
                                                             options: nil 
                                                             newFrameHandler: ^(SyphonOpenGLClient *client) {
 
-        CGLContextObj ctx = client.context;
-        CGLSetCurrentContext(ctx);
 
-        SyphonOpenGLImage * frame = client.newFrameImage;
+    if (client) {
+      CGLContextObj ctx = client.context;
+      CGLSetCurrentContext(ctx);
 
-        GLuint texture = frame.textureName;
-        size_t width = frame.textureSize.width;
-        size_t height = frame.textureSize.height;
+      SyphonOpenGLImage * frame = client.newFrameImage;
 
-        uint8_t * pixel_buffer = OpenGLHelper::TextureToUint8(texture, width, height);
+      GLuint texture = frame.textureName;
+      size_t width = frame.textureSize.width;
+      size_t height = frame.textureSize.height;
 
-        m_frame_listener->Call(pixel_buffer, width, height);
+      uint8_t * pixel_buffer = OpenGLHelper::TextureToUint8(texture, width, height);
 
-        [frame release];
+      m_frame_listener->Call(pixel_buffer, width, height);
 
-        CGLSetCurrentContext(NULL);
+      [frame release];
+
+      CGLSetCurrentContext(NULL);
+    }
         
   }];
 
@@ -81,6 +84,8 @@ OpenGLClientWrapper::~OpenGLClientWrapper()
 {
   // Object is automatically destroyed.
 
+  m_frame_listener->Dispose();
+
   if (m_client != NULL) {
     [m_client stop];
     [m_client release];
@@ -91,6 +96,8 @@ OpenGLClientWrapper::~OpenGLClientWrapper()
 void OpenGLClientWrapper::Dispose(const Napi::CallbackInfo& info)
 {
   // User explicitly called 'dispose'.
+
+  m_frame_listener->Dispose();
 
   if (m_client != NULL) {
     [m_client stop];
@@ -120,9 +127,37 @@ void OpenGLClientWrapper::On(const Napi::CallbackInfo &info)
   Napi::Function callback = info[1].As<Napi::Function>();
 
   if (channel == "frame") {
+    if (m_frame_listener == NULL) {
+      // Create 'frame' listener.
+      m_frame_listener = new FrameEventListener();
+    }
     // Will replace listener if any was already set.
     
     m_frame_listener->Set(env, callback);
+  } else {
+    std::string err = "String '" + channel + "' is not a valid channel listener.";
+    Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
+  }
+}
+
+void OpenGLClientWrapper::Off(const Napi::CallbackInfo &info)
+{
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  if (info.Length() != 1) {
+      Napi::TypeError::New(env, "Listener removel takes 1 arguments (channel).").ThrowAsJavaScriptException();
+    }
+    
+  if (!(info[0].IsString())) {
+    Napi::TypeError::New(env, "1st parameter of 'off' must be a string.").ThrowAsJavaScriptException();
+  }
+
+  std::string channel = info[0].As<Napi::String>().Utf8Value();
+
+  if (channel == "frame") {
+    // m_frame_listener = nullptr;
+    m_frame_listener->Dispose();
   } else {
     std::string err = "String '" + channel + "' is not a valid channel listener.";
     Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
@@ -143,6 +178,7 @@ Napi::Object OpenGLClientWrapper::Init(Napi::Env env, Napi::Object exports)
   Napi::Function func = DefineClass(env, "OpenGLClient", {
     InstanceMethod("dispose", &OpenGLClientWrapper::Dispose),
     InstanceMethod("on", &OpenGLClientWrapper::On),
+    InstanceMethod("off", &OpenGLClientWrapper::Off),
   });
 
   constructor = Napi::Persistent(func);

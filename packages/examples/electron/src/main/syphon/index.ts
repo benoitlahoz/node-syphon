@@ -5,7 +5,6 @@ import {
   SyphonServerDirectory,
   SyphonServerDirectoryListenerChannel,
 } from 'node-syphon';
-import type { SyphonGLFrameDTO } from '@/types';
 import { ElectronSyphonGLClient } from './modules/electron-syphon.gl-client';
 
 let directory: SyphonServerDirectory;
@@ -94,8 +93,7 @@ const setupDirectory = () => {
       );
 
       if (!server) {
-        console.log(`No server to connect with uuid '${uuid}'.`);
-        return false;
+        return new Error(`No server to connect with uuid '${uuid}'.`);
       }
 
       if (!client) {
@@ -103,9 +101,24 @@ const setupDirectory = () => {
       }
       client.connect(server);
 
-      return true;
+      return server;
     },
   );
+
+  // Client will pull the frame at its own pace (requestAnimationFrame).
+  ipcMain.handle('get-frame', (_event: Electron.IpcMainInvokeEvent, uuid: string) => {
+    if (!client) {
+      return new Error(`Trying to get a frame from a client that is not connected.`);
+    }
+
+    if (client.serverUUID !== uuid) {
+      return new Error(
+        `Connected server is not the same as the one from which a frame is requested.`,
+      );
+    }
+
+    return client.frame;
+  });
 
   directory.listen();
 };
