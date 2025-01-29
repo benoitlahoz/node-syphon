@@ -3,7 +3,9 @@
 
 using namespace syphon;
 
-FrameEventListener::FrameEventListener() {}
+FrameEventListener::FrameEventListener() {
+    m_listener = NULL;
+}
 
 void FrameEventListener::Set(Napi::Env env, Napi::Function listener) {
     m_listener = Napi::ThreadSafeFunction::New(
@@ -15,8 +17,18 @@ void FrameEventListener::Set(Napi::Env env, Napi::Function listener) {
     );
 }
 
+FrameEventListener::~FrameEventListener()
+{
+    m_listener = NULL;
+}
+
+void FrameEventListener::Dispose()
+{
+    m_listener = NULL;
+}
+
 void FrameEventListener::Call(uint8_t * buffer, size_t width, size_t height) {
-    if (m_listener) {
+    if (m_listener != NULL) {
 
         auto callback = [buffer, width, height](Napi::Env env, Napi::Function js_callback) {
 

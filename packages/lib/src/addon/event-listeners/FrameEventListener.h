@@ -12,6 +12,8 @@ namespace syphon
         FrameEventListener();
         ~FrameEventListener();
 
+        void Dispose();
+
         void Set(Napi::Env env, Napi::Function listener);
         void Call(uint8_t * buffer, size_t width, size_t height);
 
