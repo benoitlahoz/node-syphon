@@ -24,6 +24,7 @@ namespace syphon
 
     void Dispose(const Napi::CallbackInfo &info);
     void On(const Napi::CallbackInfo &info);
+    void Off(const Napi::CallbackInfo &info);
 
   private:
     static Napi::FunctionReference constructor;
