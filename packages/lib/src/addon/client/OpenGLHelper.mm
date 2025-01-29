@@ -44,32 +44,17 @@ uint8_t * OpenGLHelper::TextureToUint8(GLuint texture, size_t width, size_t heig
   GLuint fbo;
 
   CGLLockContext(CGLGetCurrentContext());
-  
+
   glGenFramebuffers(1, &fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE_EXT, texture, 0);
-
-  glBindTexture(GL_TEXTURE_RECTANGLE_EXT, texture);
-
-  glViewport(0, 0, width, height);
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  // glClear(GL_COLOR_BUFFER_BIT); 
 
   glEnable(GL_TEXTURE_RECTANGLE_EXT);
   glDisable(GL_DEPTH_TEST);
 
   glBindTexture(GL_TEXTURE_RECTANGLE_EXT, texture);
-
-  glBegin(GL_QUADS);
-  
-  glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
-  glTexCoord2f(width, 0.0f); glVertex2f(1.0f, -1.0f);
-  glTexCoord2f(width, height); glVertex2f(1.0f, 1.0f);
-  glTexCoord2f(0.0f, height); glVertex2f(-1.0f, 1.0f);
-
-  glEnd();
-
   glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixel_buffer);
+
   glBindTexture(GL_TEXTURE_RECTANGLE_EXT, 0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDeleteFramebuffers(1, &fbo);
