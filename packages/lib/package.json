@@ -1,6 +1,6 @@
 {
   "name": "node-syphon",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "license": "GPL-3.0+",
   "description": "Experimental and superficial bindings between Syphon-Framework and node.js.",
   "author": {

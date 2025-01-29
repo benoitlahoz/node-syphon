@@ -1,6 +1,6 @@
+import { FrameDataDefinition } from 'node-syphon';
+
 export interface SyphonGLFrameDTO {
   type: 'frame';
-  data: Uint8Array;
-  width: number;
-  height: number;
+  frame: FrameDataDefinition;
 }

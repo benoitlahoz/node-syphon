@@ -1,8 +1,8 @@
 import {
-  FrameDataDefinition,
   SyphonOpenGLClient,
   SyphonServerDirectory,
   SyphonServerDirectoryListenerChannel,
+  SyphonFrameData,
 } from 'node-syphon';
 
 let directory: SyphonServerDirectory;
@@ -31,11 +31,11 @@ const listen = () => {
         if (directory.servers.length > 0 && !client) {
           console.log('Create');
           client = new SyphonOpenGLClient(directory.servers[directory.servers.length - 1]);
-          client.on('frame', (frame: FrameDataDefinition) => {
+          client.on('frame', (frame: SyphonFrameData) => {
             console.log('FIRST', frame);
           });
 
-          client.on('frame', (frame: FrameDataDefinition) => {
+          client.on('frame', (frame: SyphonFrameData) => {
             console.log('SECOND', frame);
           });
         }

@@ -45,8 +45,8 @@ OpenGLClientWrapper::OpenGLClientWrapper(const Napi::CallbackInfo& info)
   // Bootstrap a context for Syphon client.
   CGLContextObj cgl_ctx = OpenGLHelper::CreateContext(env);
 
-  // Create 'frame' channel's listeners collection.
-  m_frame_listeners = new FrameEventListeners();
+  // Create 'frame' listener.
+  m_frame_listener = new FrameEventListener();
 
   m_client = [[SyphonOpenGLClient alloc] initWithServerDescription: [serverDescription copy]
                                                             context: cgl_ctx
@@ -64,14 +64,12 @@ OpenGLClientWrapper::OpenGLClientWrapper(const Napi::CallbackInfo& info)
 
         uint8_t * pixel_buffer = OpenGLHelper::TextureToUint8(texture, width, height);
 
-        m_frame_listeners->Call(pixel_buffer, width, height);
+        m_frame_listener->Call(pixel_buffer, width, height);
 
         [frame release];
 
         CGLSetCurrentContext(NULL);
-
         
-
   }];
 
   if (![m_client isValid]) {
@@ -89,8 +87,6 @@ OpenGLClientWrapper::~OpenGLClientWrapper()
     m_client = NULL;
   }
 }
-
-#pragma mark Instance methods.
 
 void OpenGLClientWrapper::Dispose(const Napi::CallbackInfo& info)
 {
@@ -124,7 +120,9 @@ void OpenGLClientWrapper::On(const Napi::CallbackInfo &info)
   Napi::Function callback = info[1].As<Napi::Function>();
 
   if (channel == "frame") {
-    m_frame_listeners->Add(env, callback);
+    // Will replace listener if any was already set.
+    
+    m_frame_listener->Set(env, callback);
   } else {
     std::string err = "String '" + channel + "' is not a valid channel listener.";
     Napi::TypeError::New(env, err).ThrowAsJavaScriptException();

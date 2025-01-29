@@ -1,12 +1,13 @@
 import { join } from 'node:path';
 import { Worker } from 'worker_threads';
-import { SyphonServerDescription } from 'node-syphon';
+import { ipcMain } from 'electron';
+import { SyphonFrameData, SyphonServerDescription } from 'node-syphon';
 import type { SyphonGLFrameDTO } from '@/types';
 import SyphonClientWorkerURL from './workers/gl-client.worker?worker&url';
 
 export class ElectronSyphonGLClient {
   private _worker: any;
-  private onFrameCallback = (_payload: SyphonGLFrameDTO) => {};
+  private _currentFrame?: SyphonFrameData;
 
   constructor() {
     this._worker = new Worker(join(__dirname, SyphonClientWorkerURL));
@@ -14,6 +15,11 @@ export class ElectronSyphonGLClient {
     this._worker.on('error', (err: unknown) =>
       console.error(`Error in OpenGL client worker: ${err}`),
     );
+
+    // Client will pull the frame at its own pace (requestAnimationFrame).
+    ipcMain.handle('get-frame', (_event: Electron.IpcMainInvokeEvent) => {
+      return this._currentFrame;
+    });
   }
 
   public dispose() {
@@ -26,7 +32,7 @@ export class ElectronSyphonGLClient {
   private onWorkerMessage(payload: SyphonGLFrameDTO) {
     switch (payload.type) {
       case 'frame': {
-        this.onFrameCallback(payload);
+        this._currentFrame = payload.frame;
         break;
       }
     }
@@ -37,9 +43,5 @@ export class ElectronSyphonGLClient {
       cmd: 'connect',
       server,
     });
-  }
-
-  public onFrame(callback: (payload: SyphonGLFrameDTO) => void) {
-    this.onFrameCallback = callback;
   }
 }

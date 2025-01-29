@@ -8,15 +8,14 @@ parentPort!.on('message', async (message) => {
     case 'connect': {
       if (client) {
         client.dispose();
+        // TODO: client.off -> FrameEeventListeners dispose.
       }
 
       client = new SyphonOpenGLClient(message.server);
       client.on('frame', (frame) => {
         parentPort.postMessage({
           type: 'frame',
-          data: frame,
-          width: client.width,
-          height: client.height,
+          frame,
         });
       });
 
