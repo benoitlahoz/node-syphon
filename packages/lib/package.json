@@ -38,7 +38,8 @@
     "build:syphon": "./scripts/build-syphon.sh Release",
     "build:addon": "node-gyp configure && node-gyp build && mv build/Release/syphon.node dist/bin/syphon.node && rimraf build",
     "build:main": "vite build --config vite.config.main.mts && vite build --config vite.config.universal.mts",
-    "build:directory": "vite build --config vite.config.directory.mts"
+    "build:directory": "vite build --config vite.config.directory.mts",
+    "prepublish": "cp ../../README.md ./README.md"
   },
   "devDependencies": {
     "@types/bindings": "^1.5.1",
