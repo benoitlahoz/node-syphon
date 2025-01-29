@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SyphonServerDescription } from 'node-syphon/universal';
+import type { SyphonServerDescription, SyphonFrameData } from 'node-syphon/universal';
 import {
   SyphonServerDirectoryListenerChannel,
   SyphonServerDescriptionAppNameKey,
@@ -7,7 +7,6 @@ import {
 } from 'node-syphon/universal';
 import { onMounted, ref } from 'vue';
 import { useColorMode } from '@vueuse/core';
-import type { SyphonGLFrameDTO } from '@/types';
 import {
   Select as SelectMain,
   SelectContent,
@@ -26,8 +25,8 @@ const ipcInvoke = window.electron.ipcRenderer.invoke;
 const servers = ref<SyphonServerDescription[]>([]);
 
 const canvasRef = ref();
-const width = ref(800);
-const height = ref(600);
+const width = ref(320);
+const height = ref(240);
 
 onMounted(async () => {
   // Get already running servers.
@@ -57,18 +56,31 @@ onMounted(async () => {
       servers.value = payload.servers;
     },
   );
-
-  // Subcribe to new frame.
-
-  ipcOn('new-frame', (_, payload: SyphonGLFrameDTO) => {
-    const canvas = canvasRef.value;
-    width.value = payload.width;
-    height.value = payload.height;
-    const data = new ImageData(new Uint8ClampedArray(payload.data), payload.width, payload.height);
-    const ctx = canvas.getContext('2d');
-    ctx.putImageData(data, 0, 0);
-  });
 });
+
+const getFrame = async () => {
+  // TODO: frame from specific server.
+  const frame: SyphonFrameData | undefined = await ipcInvoke('get-frame');
+
+  if (frame) {
+    width.value = frame.width;
+    height.value = frame.height;
+    const data = new ImageData(new Uint8ClampedArray(frame.buffer), frame.width, frame.height);
+
+    const canvas: HTMLCanvasElement = canvasRef.value;
+    const ctx = canvas.getContext('2d');
+
+    if (ctx) {
+      ctx.save();
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.putImageData(data, 0, 0);
+      ctx.restore();
+    }
+  }
+
+  requestAnimationFrame(getFrame);
+};
 
 const serverByUUID = (uuid: string) => {
   return servers.value.find(
@@ -90,6 +102,9 @@ const onChange = async (uuid: string) => {
   console.log('Result from main', res);
 
   console.log(`Connected to server '${serverDescription[SyphonServerDescriptionAppNameKey]}'.`);
+
+  // Start getting frames.
+  await getFrame();
 };
 </script>
 
@@ -112,12 +127,17 @@ const onChange = async (uuid: string) => {
             :key="server[SyphonServerDescriptionUUIDKey]",
             :value="server[SyphonServerDescriptionUUIDKey]"
           ) {{ server[SyphonServerDescriptionAppNameKey] }}
-  .w-full.flex.flex-1.pt-4 
+  .w-full.flex.flex-1.mt-4.bg-black.overflow-hidden
     canvas(
       ref="canvasRef",
       :width="width",
       :height="height"
-    ).bg-black.w-full.grow-1
+    ).w-full
 </template>
 
-<style scoped></style>
+<style scoped>
+/* FIXME: Very ugly way to flip. */
+canvas {
+  transform: scaleY(-1);
+}
+</style>

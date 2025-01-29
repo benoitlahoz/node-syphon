@@ -100,13 +100,6 @@ const setupDirectory = () => {
 
       if (!client) {
         client = new ElectronSyphonGLClient();
-        client.onFrame((payload: SyphonGLFrameDTO) => {
-          const contents = webContents.getAllWebContents();
-          for (const webContent of contents) {
-            webContent.send('new-frame', payload);
-          }
-          // console.log(payload);
-        });
       }
       client.connect(server);
 
