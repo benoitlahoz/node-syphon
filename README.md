@@ -46,93 +46,6 @@ This will build Syphon, the node-addon and the JS library and copy everything in
 
 See [examples](https://github.com/benoitlahoz/node-syphon/tree/main/examples).
 
-### Server
-
-##### OpenGL
-
-```typescript
-import { SyphonOpenGLServer } from 'node-syphon';
-
-// Create a server.
-const server = new SyphonOpenGLServer('My awesome server');
-
-const size = 50 * 50 * 4;
-const clamp = 255;
-
-let data: any = new Uint8ClampedArray(size);
-
-// Generate random pixels.
-for (let i = 0; i < size; i = i + 4) {
-  data[i] = Math.floor(Math.random() * Math.min(255, clamp));
-  data[i + 1] = Math.floor(Math.random() * Math.min(255, clamp));
-  data[i + 2] = Math.floor(Math.random() * Math.min(255, clamp));
-  data[i + 3] = 255;
-}
-
-// Send frames.
-// Better in a worker.
-const interval = setInterval(() => {
-  server.publishImageData(
-    data,
-    'GL_TEXTURE_2D',
-
-    // Region.
-
-    { x: 0, y: 0, width: 50, height: 50 },
-
-    // Size.
-
-    { width: 50, height: 50 },
-
-    // Flipped.
-
-    false
-  );
-}, 1000 / 60);
-```
-
-##### Metal
-
-```typescript
-import { SyphonMetalServer } from 'node-syphon';
-
-// Create a server.
-const server = new SyphonMetalServer('My awesome server');
-
-const size = 50 * 50 * 4;
-const clamp = 255;
-
-let data: any = new Uint8ClampedArray(size);
-
-// Generate random pixels.
-for (let i = 0; i < size; i = i + 4) {
-  data[i] = Math.floor(Math.random() * Math.min(255, clamp));
-  data[i + 1] = Math.floor(Math.random() * Math.min(255, clamp));
-  data[i + 2] = Math.floor(Math.random() * Math.min(255, clamp));
-  data[i + 3] = 255;
-}
-
-// Send frames.
-// Better in a worker.
-const interval = setInterval(() => {
-  server.publishImageData(
-    data,
-
-    // Region.
-
-    { x: 0, y: 0, width: 50, height: 50 },
-
-    // Bytes per row.
-
-    4,
-
-    // Flipped.
-
-    false
-  );
-}, 1000 / 60);
-```
-
 ### Client
 
 ```typescript
@@ -175,6 +88,96 @@ directory.on(SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification
 directory.listen();
 ```
 
+### Server
+
+##### OpenGL
+
+```typescript
+import { SyphonOpenGLServer } from 'node-syphon';
+
+// Create a server.
+const server = new SyphonOpenGLServer('My awesome server');
+
+const size = 50 * 50 * 4;
+const clamp = 255;
+
+let data: any = new Uint8ClampedArray(size);
+
+// Generate random pixels.
+for (let i = 0; i < size; i = i + 4) {
+  data[i] = Math.floor(Math.random() * Math.min(255, clamp));
+  data[i + 1] = Math.floor(Math.random() * Math.min(255, clamp));
+  data[i + 2] = Math.floor(Math.random() * Math.min(255, clamp));
+  data[i + 3] = 255;
+}
+
+// Send frames.
+const interval = setInterval(() => {
+  server.publishImageData(
+    data,
+    'GL_TEXTURE_2D',
+
+    // Region.
+
+    { x: 0, y: 0, width: 50, height: 50 },
+
+    // Size.
+
+    { width: 50, height: 50 },
+
+    // Flipped.
+
+    false
+  );
+}, 1000 / 60);
+```
+
+##### Metal
+
+```typescript
+import { SyphonMetalServer } from 'node-syphon';
+
+// Create a server.
+const server = new SyphonMetalServer('My awesome server');
+
+const size = 50 * 50 * 4;
+const clamp = 255;
+
+let data: any = new Uint8ClampedArray(size);
+
+// Generate random pixels.
+for (let i = 0; i < size; i = i + 4) {
+  data[i] = Math.floor(Math.random() * Math.min(255, clamp));
+  data[i + 1] = Math.floor(Math.random() * Math.min(255, clamp));
+  data[i + 2] = Math.floor(Math.random() * Math.min(255, clamp));
+  data[i + 3] = 255;
+}
+
+// Send frames.
+const interval = setInterval(() => {
+  server.publishImageData(
+    data,
+
+    // Region.
+
+    { x: 0, y: 0, width: 50, height: 50 },
+
+    // Bytes per row.
+
+    4,
+
+    // Flipped.
+
+    false
+  );
+}, 1000 / 60);
+```
+
+## Performances
+
+As of v0.6.1, the `electron` **client** example getting a **1920x1080** image from VDMX has a latency of **8 milliseconds** on a MacPro 2013.
+
 ## TODO
 
+- Flip texture vertically in the addon.
 - Explore new Electron's [`sharedTexture`](https://www.electronjs.org/docs/latest/api/structures/offscreen-shared-texture) to avoid copying pixels.
