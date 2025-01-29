@@ -21,7 +21,9 @@ export class SyphonOpenGLClient {
   }
 
   public dispose() {
-    this.client.dispose();
+    this.listeners.length = 0;
+    this.isFrameListenerSet = false;
+    this.client.dispose(); // Will also remove addon's listener.
   }
 
   public on(channel: string, callback: (frame: SyphonFrameData) => void) {
@@ -37,8 +39,20 @@ export class SyphonOpenGLClient {
     }
   }
 
-  public off(channel: string, callback: (data: Uint8ClampedArray) => void) {
-    //
+  public off(channel: string, callback: (frame: SyphonFrameData) => void) {
+    switch (channel) {
+      case 'frame': {
+        const index = this.listeners.indexOf(callback);
+        if (index >= 0) {
+          this.listeners.splice(index, 1);
+
+          if (this.listeners.length === 0) {
+            this.client.off('frame');
+          }
+        }
+        break;
+      }
+    }
   }
 
   private frameDataListenerCallback(frame: SyphonFrameData): void {
