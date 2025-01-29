@@ -6,4 +6,10 @@ export enum SyphonServerDirectoryListenerChannel {
   SyphonServerUpdateNotification = 'syphon:server.update',
 }
 
+export interface SyphonFrameData {
+  buffer: Buffer;
+  width: number;
+  height: number;
+}
+
 export * from '../common/types';
