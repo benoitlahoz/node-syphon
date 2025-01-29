@@ -1,5 +1,5 @@
 import { SyphonAddon } from '../common/addon';
-
+import type { SyphonFrameData } from './universal';
 import type { SyphonServerDescription } from '../common/types';
 
 // TODO: Test with window handle.
@@ -8,33 +8,42 @@ export interface SyphonOpenGLClientConstructorOptions {
   handle?: Buffer;
 }
 
-export interface FrameDataDefinition {
-  buffer: Buffer;
-  width: number;
-  height: number;
-}
+export type { SyphonFrameData };
 
 export class SyphonOpenGLClient {
-  private _client: any;
+  private client: any;
+  private listeners: ((frame: SyphonFrameData) => void)[] = [];
+
+  private isFrameListenerSet = false;
 
   constructor(description: SyphonServerDescription) {
-    this._client = new SyphonAddon.OpenGLClient(description);
+    this.client = new SyphonAddon.OpenGLClient(description);
   }
 
   public dispose() {
-    this._client.dispose();
+    this.client.dispose();
   }
 
-  public on(channel: string, callback: (frame: FrameDataDefinition) => void) {
-    this._client.on(channel, callback);
+  public on(channel: string, callback: (frame: SyphonFrameData) => void) {
+    switch (channel) {
+      case 'frame': {
+        if (!this.isFrameListenerSet) {
+          this.client.on('frame', this.frameDataListenerCallback.bind(this));
+          this.isFrameListenerSet = true;
+        }
+        this.listeners.push(callback);
+        break;
+      }
+    }
   }
 
   public off(channel: string, callback: (data: Uint8ClampedArray) => void) {
     //
   }
 
-  public async getFrame(): Promise<any> {
-    const nativeBuffer: Buffer = await this._client.getFrame();
-    return nativeBuffer.buffer;
+  private frameDataListenerCallback(frame: SyphonFrameData): void {
+    for (const listener of this.listeners) {
+      listener(frame);
+    }
   }
 }
