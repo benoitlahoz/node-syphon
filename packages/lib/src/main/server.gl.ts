@@ -37,15 +37,11 @@ export class SyphonOpenGLServer {
   }
   */
 
-  public on(channel: string, fn: (...args: any[]) => void): void {
-    this._server.on(channel, fn);
-  }
-
   public get name(): string {
     return this._server.name;
   }
 
-  public get serverDescription(): SyphonServerDescription {
+  public get description(): SyphonServerDescription {
     return this._server.serverDescription;
   }
 

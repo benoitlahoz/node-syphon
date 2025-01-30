@@ -14,8 +14,8 @@ const test = () => {
     console.log('Ho', frame);
   });
   */
-  console.log('Created', serverOne.serverDescription);
-  console.log('Created', serverTwo.serverDescription);
+  console.log('Created', serverOne.description);
+  console.log('Created', serverTwo.description);
 
   // It's up to the user to deallocate the server.
   [`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {

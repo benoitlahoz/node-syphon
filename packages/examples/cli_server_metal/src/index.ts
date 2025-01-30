@@ -3,7 +3,7 @@ import { SyphonMetalServer } from 'node-syphon';
 let interval;
 const test = () => {
   const serverOne = new SyphonMetalServer('Metal Server');
-  console.log('Created', serverOne.serverDescription);
+  console.log('Created', serverOne.description);
 
   // It's up to the user to deallocate the server.
   [`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
