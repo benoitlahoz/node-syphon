@@ -3,7 +3,7 @@ const { SyphonOpenGLClient } = require('node-syphon');
 
 let client;
 
-parentPort!.on('message', async (message) => {
+parentPort.on('message', async (message) => {
   switch (message.cmd) {
     case 'connect': {
       if (client) {

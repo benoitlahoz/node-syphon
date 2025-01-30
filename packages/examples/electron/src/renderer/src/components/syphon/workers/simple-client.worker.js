@@ -29,6 +29,8 @@ self.onmessage = async (event) => {
 
   if (ticks > 10) {
     // Every 10 ticks.
+
+    // See here to enhance: https://github.com/overengineeringstudio/fps-meter/blob/main/src/index.tsx
     const now = performance.now();
     const diff = now - last;
 

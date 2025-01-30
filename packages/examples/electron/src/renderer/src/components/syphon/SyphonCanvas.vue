@@ -12,7 +12,7 @@ import {
   type SyphonServerDescription,
 } from 'node-syphon/universal';
 import { useSyphon } from '../../composables/useSyphon';
-import WorkerURL from './workers/offscreen-canvas.worker?url';
+import WorkerURL from './workers/simple-client.worker?url';
 
 const ipcInvoke = window.electron.ipcRenderer.invoke;
 

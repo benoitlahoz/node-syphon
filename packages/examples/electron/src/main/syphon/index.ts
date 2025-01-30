@@ -6,9 +6,11 @@ import {
   SyphonServerDirectoryListenerChannel,
 } from 'node-syphon';
 import { ElectronSyphonGLClient } from './modules/electron-syphon.gl-client';
+import { ElectronSyphonGLServer } from './modules/electron-syphon.gl-server';
 
 let directory: SyphonServerDirectory;
 let client: ElectronSyphonGLClient;
+let server: ElectronSyphonGLServer;
 
 export const bootstrapSyphon = () => {
   setupDirectory();
@@ -59,7 +61,6 @@ const setupDirectory = () => {
           servers: directory.servers,
         });
       }
-      console.log('Server announce', server);
     },
   );
 
@@ -73,7 +74,6 @@ const setupDirectory = () => {
           servers: directory.servers,
         });
       }
-      console.log('Server retire', server);
     },
   );
 
@@ -119,6 +119,25 @@ const setupDirectory = () => {
 
     return client.frame;
   });
+
+  ipcMain.handle('create-server', (_event: Electron.IpcMainInvokeEvent, name: string) => {
+    console.log('Create server', name);
+    if (!server) {
+      server = new ElectronSyphonGLServer(name);
+    }
+    return true;
+  });
+
+  ipcMain.handle(
+    'publish-frame',
+    (
+      _event: Electron.IpcMainInvokeEvent,
+      frame: { data: Uint8ClampedArray; width: number; height: number },
+    ) => {
+      server.publishFrameData(frame);
+      return true;
+    },
+  );
 
   directory.listen();
 };

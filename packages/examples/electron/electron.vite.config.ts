@@ -18,6 +18,8 @@ export default defineConfig({
       alias: {
         '@/renderer': resolve('src/renderer/src'),
         '@/components': resolve('src/renderer/src/components'),
+        '@/composables': resolve('src/renderer/src/composables'),
+        '@/assets': resolve('src/renderer/src/assets'),
         '@/lib': resolve('src/renderer/src/lib'),
       },
     },
