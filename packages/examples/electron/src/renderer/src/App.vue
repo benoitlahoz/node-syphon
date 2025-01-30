@@ -5,50 +5,84 @@ import {
   SyphonServerDescriptionUUIDKey,
 } from 'node-syphon/universal';
 import { ref } from 'vue';
-import { useColorMode } from '@vueuse/core';
 import { useSyphon } from './composables/useSyphon';
+
 import {
   Select as SelectMain,
   SelectContent,
   SelectGroup,
   SelectItem,
-  // SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { default as SyphonCanvas } from '@/components/syphon/SyphonCanvas.vue';
 
-useColorMode();
+import { default as SyphonCanvas } from '@/components/syphon/SyphonCanvas.vue';
 
 const { servers, serverByUUID } = useSyphon();
 const serverDescription = ref<SyphonServerDescription>();
 
+const fps = ref(0);
+const width = ref(0);
+const height = ref(0);
+
 const onChange = async (uuid: string) => {
   serverDescription.value = serverByUUID(uuid);
+};
+
+const onFpsChange = (value: number) => {
+  fps.value = value;
+};
+
+const onResize = (value: { width: number; height: number }) => {
+  width.value = value.width;
+  height.value = value.height;
 };
 </script>
 
 <template lang="pug">
-.bg-background.w-full.h-full.flex.flex-col.p-4.text-sm
-  .w-full
-    select-main(
-      @update:model-value="onChange"
-    )
-      select-trigger(
-        class="w-[300px]"
-      ) 
-        select-value(
-          placeholder="Select a server..."
-        )
-      select-content
-        select-group 
-          select-item(
-            v-for="server in servers",
-            :key="server[SyphonServerDescriptionUUIDKey]",
-            :value="server[SyphonServerDescriptionUUIDKey]"
-          ) {{ server[SyphonServerDescriptionAppNameKey] }}
-  .w-full.flex.flex-1.mt-4.bg-black.overflow-hidden
-    syphon-canvas(
-      :server="serverDescription"
-    ).w-full
+.w-full.h-full.flex.flex-col.text-sm
+  .bg-background-dark
+    .titlebar.w-full.font-semibold Electron Simple Client
+    .w-full.p-3.flex.items-center
+      select-main(
+        @update:model-value="onChange"
+      )
+        select-trigger(
+          class="w-[30%]"
+        ) 
+          select-value(
+            placeholder="Select a server..."
+          )
+        select-content
+          select-group 
+            select-item(
+              v-for="server in servers",
+              :key="server[SyphonServerDescriptionUUIDKey]",
+              :value="server[SyphonServerDescriptionUUIDKey]"
+            ) {{ server[SyphonServerDescriptionAppNameKey] }}
+
+      .rounded.border.border-input.h-10.flex.items-center.justify-center.ml-4.mr-4.text-sm.text-background.font-semibold.console(
+        class="w-[30%]"
+      ) {{ width }} x {{ height }} : {{ fps }} FPS
+  .bg-background.w-full.flex-1.flex.flex-col
+    .w-full.flex.flex-1.bg-black.overflow-hidden
+      syphon-canvas(
+        :server="serverDescription",
+        @fps="onFpsChange",
+        @resize="onResize"
+      ).w-full
 </template>
+
+<style scoped>
+.titlebar {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-app-region: drag;
+}
+
+.console {
+  background: rgb(179, 180, 127);
+}
+</style>

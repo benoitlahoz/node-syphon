@@ -21,8 +21,12 @@ function getNativeWindowHandle_Int(win) {
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 900,
-    height: 670,
+    height: 600,
+    minWidth: 900,
+    minHeight: 600,
     show: false,
+    frame: false,
+    titleBarStyle: 'hidden',
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -47,13 +51,6 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
-}
-
-if (!app.requestSingleInstanceLock()) {
-  console.log('Single');
-  // closeSyphon();
-  // app.quit();
-  // process.exit(0);
 }
 
 app.whenReady().then(() => {
