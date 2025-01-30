@@ -4,12 +4,10 @@
 #include <napi.h>
 #include <map>
 
-#import <Foundation/Foundation.H>
-#import <Cocoa/Cocoa.h>
-// #import <OpenGL/OpenGL.h>
-#import <Syphon/Syphon.h>
-
-#include <OpenGL/gl.h>
+#include <Foundation/Foundation.H>
+#include <Cocoa/Cocoa.h>
+#include <OpenGL/OpenGL.h>
+#include <Syphon/Syphon.h>
 
 // Macros.
 
@@ -33,33 +31,17 @@ namespace syphon
 
     void PublishImageData(const Napi::CallbackInfo &info);
     // void PublishFrameTexture(const Napi::CallbackInfo &info);
-    void On(const Napi::CallbackInfo &info);
-
-    // Class listeners.
-
-    // static void On(const Napi::CallbackInfo &info);
-
-    // Accessors.
 
     Napi::Value GetName(const Napi::CallbackInfo &info);
     Napi::Value GetServerDescription(const Napi::CallbackInfo &info);
     Napi::Value HasClients(const Napi::CallbackInfo &info);
 
-    // Properties.
-
     SyphonOpenGLServer *m_server;
-    std::map<std::string, std::vector<Napi::ThreadSafeFunction>> m_listeners;
-    int m_callbacks_count;
-
   private:
     static Napi::FunctionReference constructor;
 
-    void _CreateCurrentContext(Napi::Env env);
-    void _GenerateTexture(GLenum textureTarget, GLsizei width, GLsizei height, uint8_t *data);
-
-    bool _first_check_passed;
-    GLenum _texture;
-    void _Dispose();
+    bool m_first_check_passed;
+    GLuint m_texture;
   };
 }
 
