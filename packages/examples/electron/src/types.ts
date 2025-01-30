@@ -1,6 +1,6 @@
-import { FrameDataDefinition } from 'node-syphon';
+import { SyphonFrameData } from 'node-syphon';
 
 export interface SyphonGLFrameDTO {
   type: 'frame';
-  frame: FrameDataDefinition;
+  frame: SyphonFrameData;
 }
