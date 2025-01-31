@@ -8,6 +8,7 @@ Napi::Object InitAll(Napi::Env env, Napi::Object exports)
   OpenGLServerWrapper::Init(env, exports);
   OpenGLClientWrapper::Init(env, exports);
   MetalServerWrapper::Init(env, exports);
+  MetalClientWrapper::Init(env, exports);
   ServerDirectoryWrapper::Init(env, exports);
 
   return exports;

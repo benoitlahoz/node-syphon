@@ -4,6 +4,7 @@
 #include "server/OpenGLServer.h"
 #include "server/MetalServer.h"
 #include "client/OpenGLClient.h"
+#include "client/MetalClient.h"
 #include "directory/ServerDirectory.h"
 
 #endif
