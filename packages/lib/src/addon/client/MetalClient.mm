@@ -151,7 +151,7 @@ void MetalClientWrapper::Off(const Napi::CallbackInfo &info)
   Napi::HandleScope scope(env);
 
   if (info.Length() != 1) {
-      Napi::TypeError::New(env, "Listener removel takes 1 arguments (channel).").ThrowAsJavaScriptException();
+      Napi::TypeError::New(env, "Listener removal takes 1 arguments (channel).").ThrowAsJavaScriptException();
     }
     
   if (!(info[0].IsString())) {
