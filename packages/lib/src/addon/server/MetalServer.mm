@@ -7,101 +7,53 @@
 
 using namespace syphon;
 
-// #define SYPHON_CORE_SHARE 1
-
 Napi::FunctionReference MetalServerWrapper::constructor;
 
-/**
- * The SyphonMetalServer constructor.
- */
 MetalServerWrapper::MetalServerWrapper(const Napi::CallbackInfo& info)
 : Napi::ObjectWrap<MetalServerWrapper>(info)
 {
-
-
   Napi::Env env = info.Env();
-  Napi::HandleScope scope(env); // Means that env will be released after method returns.
+  Napi::HandleScope scope(env); 
 
   if (info.Length() != 1 || !info[0].IsString())
   {
-
     const char * err = "Please provide an unique name for the server.";
     Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
-
   }
 
-  // Try to instantiate the object with the provided CallbackInfo.
-  // It's up to the wrapped class to throw an error we'll catch here.
-  try {
+  m_first_check_passed = false;
 
-    _first_check_passed = false;
+  m_device = MTLCreateSystemDefaultDevice();
+  m_queue = [m_device newCommandQueue];
 
-    printf("Initialize Server with name '%s'.\n", TO_C_STRING(info[0]));
-
-    _device = MTLCreateSystemDefaultDevice();
-    _queue = [_device newCommandQueue];
-
-    m_server = [[SyphonMetalServer alloc] initWithName:TO_NSSTRING(info[0]) device:_device options:nil];
-    m_callbacks_count = 0;
-
-  } catch (char const *err)
-  {
-
-    Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
-
-  }
-
+  m_server = [[SyphonMetalServer alloc] initWithName:TO_NSSTRING(info[0]) device:m_device options:nil];
 }
 
-/**
- * The SyphonMetalServer destructor: will call Dispose on server and tear-down any resources associated.
- */
 MetalServerWrapper::~MetalServerWrapper()
 {
-  printf("Syphon server destructor will call dispose.\n");
-  _Dispose();
-}
-
-#pragma mark Static methods.
-
-bool MetalServerWrapper::HasInstance(Napi::Value value)
-{
-  return value.As<Napi::Object>().InstanceOf(constructor.Value());
-}
-
-
-#pragma mark Instance methods.
-
-/**
- * Dealloc server and tear-down any resources associated.
- */
-void MetalServerWrapper::Dispose(const Napi::CallbackInfo& info)
-{
-  printf("Syphon server dispose method will call dispose.\n");
-  _Dispose();
-}
-
-void MetalServerWrapper::_Dispose() {
-
-  printf("Syphon server will dispose.\n");
-
   if (m_server != NULL) {
     [m_server release];
     m_server = NULL;
   }
+}
 
+void MetalServerWrapper::Dispose(const Napi::CallbackInfo& info)
+{
+  if (m_server != NULL) {
+    [m_server release];
+    m_server = NULL;
+  }
 }
 
 void MetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
 {
-
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
 
   // Only test the parameters on first call: we suppose that the function will be called 
   // with same parameters, so we can avoid checking at each new frame.
   
-  if (!_first_check_passed) {
+  if (!m_first_check_passed) {
 
     if (info.Length() != 4) {
       Napi::TypeError::New(env, "Invalid number of parameters for 'publishImageData'").ThrowAsJavaScriptException();
@@ -123,19 +75,16 @@ void MetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
       Napi::TypeError::New(env, "4th parameter (flipped) must be a boolean in 'publishImageData'").ThrowAsJavaScriptException();
     }
 
-    _first_check_passed = true;
-
+    m_first_check_passed = true;
   }
 
-  try {
-
     Napi::Object region = info[1].As<Napi::Object>();
-
     NSRect imageRegion = NSMakeRect(region.Get("x").ToNumber().Uint32Value(), region.Get("y").ToNumber().Uint32Value(), region.Get("width").ToNumber().Uint32Value(), region.Get("height").ToNumber().Uint32Value());
+    
     NSUInteger bytesPerRow = info[2].As<Napi::Number>().ToNumber().Uint32Value();
-    BOOL flipped = info[3].As<Napi::Boolean>().Value() == true ? YES : NO; // Is this conversion necessary?
+    
+    BOOL flipped = info[3].As<Napi::Boolean>().Value() == true ? YES : NO; 
 
-    // See here: https://github.com/nodejs/node-addon-examples/blob/main/array_buffer_to_native/node-addon-api/array_buffer_to_native.cc
     Napi::ArrayBuffer buffer = info[0].As<Napi::TypedArrayOf<uint8_t>>().ArrayBuffer(); 
 
     MTLTextureDescriptor *descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat: MTLPixelFormatRGBA8Unorm
@@ -143,54 +92,21 @@ void MetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
                                                              height: (NSUInteger) imageRegion.size.height
                                                              mipmapped: NO];
 
-    _texture = [_device newTextureWithDescriptor: descriptor];
-    [_texture replaceRegion: MTLRegionMake2D(imageRegion.origin.x, imageRegion.origin.y, imageRegion.size.width, imageRegion.size.height)
+    m_texture = [m_device newTextureWithDescriptor: descriptor];
+    [m_texture replaceRegion: MTLRegionMake2D(imageRegion.origin.x, imageRegion.origin.y, imageRegion.size.width, imageRegion.size.height)
               mipmapLevel: 0
               withBytes: buffer.Data()
               bytesPerRow: bytesPerRow];
 
-    id<MTLCommandBuffer> cmd = [_queue commandBuffer]; 
+    id<MTLCommandBuffer> cmd = [m_queue commandBuffer]; 
     
-    [m_server publishFrameTexture: _texture
+    [m_server publishFrameTexture: m_texture
               onCommandBuffer: cmd
               imageRegion: imageRegion
               flipped: flipped];
 
     [cmd commit];
-
-    auto channel_callbacks = MetalServerWrapper::m_listeners.find("message");
-
-    if (channel_callbacks != MetalServerWrapper::m_listeners.end()) {
-
-      std::vector<Napi::ThreadSafeFunction> callbacks = channel_callbacks->second;
-
-      for (auto it = begin(callbacks); it != end(callbacks); ++it) {
-
-        // Calls registered callback.
-
-        Napi::String napiMessageString = info[1].As<Napi::String>();
-        auto callback = [napiMessageString](Napi::Env env, Napi::Function js_callback) {
-          js_callback.Call({napiMessageString});
-        };
-
-        it->NonBlockingCall(callback);
-
-      }
-
-    }
-
-    // os_unfair_lock_unlock(&m_lock);
-
-  } catch (char const *err)
-  {
-
-    Napi::Error::New(env, err).ThrowAsJavaScriptException();
-
-  }
-
 }
-
-// Getters.
 
 Napi::Value MetalServerWrapper::GetName(const Napi::CallbackInfo &info) 
 {
@@ -207,7 +123,10 @@ Napi::Value MetalServerWrapper::HasClients(const Napi::CallbackInfo &info)
   return Napi::Boolean::New(info.Env(), [m_server hasClients]);
 }
 
-// Class definition.
+bool MetalServerWrapper::HasInstance(Napi::Value value)
+{
+  return value.As<Napi::Object>().InstanceOf(constructor.Value());
+}
 
 Napi::Object MetalServerWrapper::Init(Napi::Env env, Napi::Object exports)
 {

@@ -31,36 +31,19 @@ namespace syphon
 
     void PublishImageData(const Napi::CallbackInfo &info);
     // void PublishFrameTexture(const Napi::CallbackInfo &info);
-    void On(const Napi::CallbackInfo &info);
-
-    // Class listeners.
-
-    // static void On(const Napi::CallbackInfo &info);
-
-    // Accessors.
 
     Napi::Value GetName(const Napi::CallbackInfo &info);
     Napi::Value GetServerDescription(const Napi::CallbackInfo &info);
     Napi::Value HasClients(const Napi::CallbackInfo &info);
 
-    // Properties.
-
-    SyphonMetalServer *m_server;
-    std::map<std::string, std::vector<Napi::ThreadSafeFunction>> m_listeners;
-    int m_callbacks_count;
-
+    SyphonMetalServer * m_server;
   private:
     static Napi::FunctionReference constructor;
 
-    // void _CreateCurrentDevice(Napi::Env env);
-    // void _GenerateTexture(GLenum textureTarget, GLsizei width, GLsizei height, uint8_t *data);
-
-    bool _first_check_passed;
-
-    id<MTLDevice> _device;
-    id<MTLCommandQueue> _queue;
-    id<MTLTexture> _texture;
-    void _Dispose();
+    bool m_first_check_passed;
+    id<MTLDevice> m_device;
+    id<MTLCommandQueue> m_queue;
+    id<MTLTexture> m_texture;
   };
 }
 

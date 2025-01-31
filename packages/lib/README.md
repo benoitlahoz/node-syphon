@@ -164,7 +164,7 @@ const interval = setInterval(() => {
 
     // Bytes per row.
 
-    4,
+    4 * 50,
 
     // Flipped.
 
