@@ -5,7 +5,7 @@
 #include "OpenGLClient.h"
 
 #include "../helpers/NodeSyphonHelpers.h"
-#include "OpenGLHelper.h"
+#include "../opengl/OpenGLHelper.h"
 
 using namespace syphon;
 

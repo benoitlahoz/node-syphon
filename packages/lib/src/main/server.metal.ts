@@ -26,7 +26,7 @@ export class SyphonMetalServer {
     return this._server.name;
   }
 
-  public get serverDescription(): SyphonServerDescription {
+  public get description(): SyphonServerDescription {
     return this._server.serverDescription;
   }
 

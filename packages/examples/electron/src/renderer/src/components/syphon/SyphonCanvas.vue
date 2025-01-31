@@ -5,25 +5,36 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import {
   SyphonServerDescriptionUUIDKey,
   type SyphonFrameData,
   type SyphonServerDescription,
 } from 'node-syphon/universal';
 import { useSyphon } from '../../composables/useSyphon';
+import WorkerURL from './workers/simple-client.worker?url';
 
 const ipcInvoke = window.electron.ipcRenderer.invoke;
 
 const { connectToServer } = useSyphon();
 
 const { server } = defineProps<{ server?: SyphonServerDescription }>();
+const emit = defineEmits(['fps', 'resize']);
 
 const canvasRef = ref<HTMLCanvasElement>();
+let offscreenCanvas: OffscreenCanvas;
+let worker;
+let animationFrameReqId;
+
 const width = ref<number>(0);
 const height = ref<number>(0);
 
-let animationFrameReqId;
+watch(
+  () => [width.value, height.value],
+  () => {
+    emit('resize', { width: width.value, height: height.value });
+  },
+);
 
 watch(
   () => [server],
@@ -39,12 +50,38 @@ watch(
         return;
       }
 
+      if (!offscreenCanvas) {
+        console.error('Canvas was not mounted yet.');
+      }
+
+      if (!worker) {
+        worker = new Worker(WorkerURL);
+        await worker.postMessage({ cmd: 'init', canvas: offscreenCanvas }, [offscreenCanvas]);
+        worker.onmessage = (event: any) => {
+          switch (event.data.type) {
+            case 'fps': {
+              emit('fps', event.data.payload);
+              break;
+            }
+          }
+        };
+      }
+
       // Start getting frames.
       animationFrameReqId = requestAnimationFrame(getFrame);
     }
   },
   { immediate: true },
 );
+
+onMounted(async () => {
+  const canvas: HTMLCanvasElement = canvasRef.value!;
+  offscreenCanvas = canvas.transferControlToOffscreen();
+});
+
+onBeforeUnmount(() => {
+  worker.terminate();
+});
 
 const getFrame = async () => {
   // Pull frame from main process on specific server.
@@ -57,13 +94,8 @@ const getFrame = async () => {
   if (frame) {
     width.value = frame.width;
     height.value = frame.height;
-    const data = new ImageData(new Uint8ClampedArray(frame.buffer), frame.width, frame.height);
 
-    const canvas: HTMLCanvasElement = canvasRef.value!;
-    const ctx = canvas.getContext('2d')!;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.putImageData(data, 0, 0);
+    await worker.postMessage({ buffer: frame.buffer, width: width.value, height: height.value });
   }
 
   animationFrameReqId = requestAnimationFrame(getFrame);

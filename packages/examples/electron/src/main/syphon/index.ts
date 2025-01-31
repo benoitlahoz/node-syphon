@@ -6,9 +6,15 @@ import {
   SyphonServerDirectoryListenerChannel,
 } from 'node-syphon';
 import { ElectronSyphonGLClient } from './modules/electron-syphon.gl-client';
+import { ElectronSyphonGLServer } from './modules/electron-syphon.gl-server';
+import { ElectronSyphonMetalServer } from './modules/electron-syphon.metal-server';
 
 let directory: SyphonServerDirectory;
-let client: ElectronSyphonGLClient;
+
+let glClient: ElectronSyphonGLClient;
+let glServer: ElectronSyphonGLServer;
+
+let metalServer: ElectronSyphonMetalServer;
 
 export const bootstrapSyphon = () => {
   setupDirectory();
@@ -59,7 +65,6 @@ const setupDirectory = () => {
           servers: directory.servers,
         });
       }
-      console.log('Server announce', server);
     },
   );
 
@@ -73,7 +78,6 @@ const setupDirectory = () => {
           servers: directory.servers,
         });
       }
-      console.log('Server retire', server);
     },
   );
 
@@ -96,10 +100,10 @@ const setupDirectory = () => {
         return new Error(`No server to connect with uuid '${uuid}'.`);
       }
 
-      if (!client) {
-        client = new ElectronSyphonGLClient();
+      if (!glClient) {
+        glClient = new ElectronSyphonGLClient();
       }
-      client.connect(server);
+      glClient.connect(server);
 
       return server;
     },
@@ -107,18 +111,62 @@ const setupDirectory = () => {
 
   // Client will pull the frame at its own pace (requestAnimationFrame).
   ipcMain.handle('get-frame', (_event: Electron.IpcMainInvokeEvent, uuid: string) => {
-    if (!client) {
+    if (!glClient) {
       return new Error(`Trying to get a frame from a client that is not connected.`);
     }
 
-    if (client.serverUUID !== uuid) {
+    if (glClient.serverUUID !== uuid) {
       return new Error(
         `Connected server is not the same as the one from which a frame is requested.`,
       );
     }
 
-    return client.frame;
+    return glClient.frame;
   });
+
+  ipcMain.handle(
+    'create-server',
+    (_event: Electron.IpcMainInvokeEvent, name: string, type: 'metal' | 'gl') => {
+      switch (type) {
+        case 'gl': {
+          if (!glServer) {
+            glServer = new ElectronSyphonGLServer(name);
+          }
+          break;
+        }
+        case 'metal': {
+          if (!metalServer) {
+            metalServer = new ElectronSyphonMetalServer(name);
+          }
+          break;
+        }
+      }
+
+      return true;
+    },
+  );
+
+  ipcMain.handle(
+    'publish-frame-gl',
+    (
+      _event: Electron.IpcMainInvokeEvent,
+      frame: { data: Uint8ClampedArray; width: number; height: number },
+    ) => {
+      glServer.publishImageData(frame);
+      return true;
+    },
+  );
+
+  ipcMain.handle(
+    'publish-frame-metal',
+    (
+      _event: Electron.IpcMainInvokeEvent,
+      frame: { data: Uint8ClampedArray; width: number; height: number },
+    ) => {
+      metalServer.publishImageData(frame);
+      return true;
+    },
+  );
 
   directory.listen();
 };

@@ -63,3 +63,16 @@ uint8_t * OpenGLHelper::TextureToUint8(GLuint texture, size_t width, size_t heig
 
   return pixel_buffer;
 }
+
+void OpenGLHelper::Uint8ToTexture(GLenum textureTarget, GLuint texture, size_t width, size_t height, uint8_t * data) {
+  glEnable(textureTarget);
+  glBindTexture(textureTarget, texture);
+
+  glTexImage2D(textureTarget, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+  glTexParameteri(textureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(textureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  glBindTexture(texture, 0);
+  glDisable(textureTarget);
+}

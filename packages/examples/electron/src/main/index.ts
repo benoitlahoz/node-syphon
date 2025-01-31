@@ -1,5 +1,5 @@
 import os from 'os';
-import { app, shell, BrowserWindow } from 'electron';
+import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
@@ -18,11 +18,19 @@ function getNativeWindowHandle_Int(win) {
   }
 }
 
-function createWindow(): void {
-  const mainWindow = new BrowserWindow({
+// @ts-ignore Value never read.
+let clientWindow: BrowserWindow;
+let serverWindow: BrowserWindow;
+
+function createWindow(route: string): BrowserWindow {
+  let win = new BrowserWindow({
     width: 900,
-    height: 670,
+    height: 600,
+    minWidth: 900,
+    minHeight: 600,
     show: false,
+    frame: false,
+    titleBarStyle: 'hidden',
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -32,28 +40,23 @@ function createWindow(): void {
     },
   });
 
-  mainWindow.on('ready-to-show', () => {
-    console.log('Window handle', getNativeWindowHandle_Int(mainWindow));
-    mainWindow.show();
+  win.on('ready-to-show', () => {
+    console.log('Window handle', getNativeWindowHandle_Int(win));
+    win.show();
   });
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
+  win.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url);
     return { action: 'deny' };
   });
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
+    win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}${route}`);
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
+    win.loadFile(`${join(__dirname, '../renderer/index.html')}`); // TODO: Routes.
   }
-}
 
-if (!app.requestSingleInstanceLock()) {
-  console.log('Single');
-  // closeSyphon();
-  // app.quit();
-  // process.exit(0);
+  return win;
 }
 
 app.whenReady().then(() => {
@@ -70,10 +73,20 @@ app.whenReady().then(() => {
   // Bootstrap Syphon.
   bootstrapSyphon();
 
-  createWindow();
+  // Listen to 'open server window'.
+  ipcMain.on('open-server', (_, type: 'gl' | 'metal') => {
+    console.log('TTT', type);
+    if (!serverWindow || serverWindow.isDestroyed()) {
+      serverWindow = createWindow(type === 'gl' ? '/gl-server' : '/metal-server');
+      const pos = serverWindow.getPosition();
+      serverWindow.setPosition(pos[0] - 50, pos[1] - 50);
+    }
+  });
+
+  clientWindow = createWindow('/');
 
   app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) clientWindow = createWindow('/');
   });
 });
 

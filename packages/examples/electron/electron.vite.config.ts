@@ -1,7 +1,7 @@
 import { resolve } from 'path';
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
 import vue from '@vitejs/plugin-vue';
-import vueDevTools from 'vite-plugin-vue-devtools';
+// import vueDevTools from 'vite-plugin-vue-devtools';
 import autoprefixer from 'autoprefixer';
 // @ts-ignore Module resolution.
 import tailwind from 'tailwindcss';
@@ -18,6 +18,8 @@ export default defineConfig({
       alias: {
         '@/renderer': resolve('src/renderer/src'),
         '@/components': resolve('src/renderer/src/components'),
+        '@/composables': resolve('src/renderer/src/composables'),
+        '@/assets': resolve('src/renderer/src/assets'),
         '@/lib': resolve('src/renderer/src/lib'),
       },
     },
@@ -27,6 +29,6 @@ export default defineConfig({
       },
     },
     // @ts-ignore Unknown error.
-    plugins: [vue(), vueDevTools()],
+    plugins: [vue() /*, vueDevTools() */],
   },
 });

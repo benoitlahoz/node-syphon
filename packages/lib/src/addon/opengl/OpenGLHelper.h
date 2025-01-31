@@ -13,6 +13,7 @@ namespace syphon
     public:
         static CGLContextObj CreateContext(Napi::Env env);
         static uint8_t * TextureToUint8(GLuint texture, size_t width, size_t height);
+        static void Uint8ToTexture(GLenum textureTarget, GLuint texture, size_t width, size_t height, uint8_t * data);
   };
 }
 

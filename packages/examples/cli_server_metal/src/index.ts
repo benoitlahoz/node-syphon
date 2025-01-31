@@ -3,7 +3,7 @@ import { SyphonMetalServer } from 'node-syphon';
 let interval;
 const test = () => {
   const serverOne = new SyphonMetalServer('Metal Server');
-  console.log('Created', serverOne.serverDescription);
+  console.log('Created', serverOne.description);
 
   // It's up to the user to deallocate the server.
   [`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`].forEach((eventType) => {
@@ -31,7 +31,7 @@ const sendToServer = (server: SyphonMetalServer, clamp = 255) => {
     }
 
     try {
-      server.publishImageData(data, { x: 0, y: 0, width: 50, height: 50 }, 4, false);
+      server.publishImageData(data, { x: 0, y: 0, width: 50, height: 50 }, 4 * 50, false);
     } catch (err) {
       console.error(err);
     }

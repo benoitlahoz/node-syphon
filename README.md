@@ -17,31 +17,6 @@ At the time of building my own multiplatform apps, using `Electron` and web tech
 yarn add node-syphon
 ```
 
-## Build
-
-Clone:
-`git clone https://github.com/benoitlahoz/node-syphon.git`
-
-Add Syphon:
-`git submodule update --init`
-
-In Syphon Framework's XCode project:
-
-- Replace the _Dynamic Library Install Name_ property with this `@loader_path/../Frameworks/$(EXECUTABLE_PATH)`.
-- Replace the _Dynamic Library Install Name Base_ property with this `@rpath`.
-- Remove any code signing rule.
-
-Install monorepo:
-`yarn`
-
-Bootstrap Lerna:
-`lerna bootstrap`
-
-Build library and examples:
-`yarn build`
-
-This will build Syphon, the node-addon and the JS library and copy everything in the `dist` folder.
-
 ## Usage
 
 See [examples](https://github.com/benoitlahoz/node-syphon/tree/main/examples).
@@ -176,6 +151,31 @@ const interval = setInterval(() => {
 ## Performances
 
 As of v0.6.1, the `electron` **client** example getting a **1920x1080** image from VDMX has a latency of **8 milliseconds** on a MacPro 2013.
+
+## Build
+
+Clone:
+`git clone https://github.com/benoitlahoz/node-syphon.git`
+
+Add Syphon:
+`git submodule update --init`
+
+In Syphon Framework's XCode project:
+
+- Replace the _Dynamic Library Install Name_ property with this `@loader_path/../Frameworks/$(EXECUTABLE_PATH)`.
+- Replace the _Dynamic Library Install Name Base_ property with this `@rpath`.
+- Remove any code signing rule.
+
+Install monorepo:
+`yarn`
+
+Bootstrap Lerna:
+`lerna bootstrap`
+
+Build library and examples:
+`yarn build`
+
+This will build Syphon, the node-addon and the JS library and copy everything in the `dist` folder.
 
 ## TODO
 

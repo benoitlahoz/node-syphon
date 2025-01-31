@@ -2,6 +2,7 @@ import {
   SyphonServerDirectoryListenerChannel,
   SyphonServerDescription,
   SyphonServerDescriptionAppNameKey,
+  SyphonServerDescriptionNameKey,
   SyphonServerDescriptionUUIDKey,
 } from 'node-syphon/universal';
 import { onBeforeMount, ref } from 'vue';
@@ -23,7 +24,7 @@ export const useSyphon = () => {
       SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
       (_, payload: { server: SyphonServerDescription; servers: SyphonServerDescription[] }) => {
         console.log(
-          `Server with name '${payload.server[SyphonServerDescriptionAppNameKey]}' connected.`,
+          `Server with name '${payload.server[SyphonServerDescriptionAppNameKey]}${payload.server[SyphonServerDescriptionNameKey] ? ` - ${payload.server[SyphonServerDescriptionNameKey]}` : ''}' connected.`,
         );
         servers.value = payload.servers;
       },
@@ -57,9 +58,33 @@ export const useSyphon = () => {
     return serverOrError;
   };
 
+  const createServer = async (name: string, type: 'gl' | 'metal'): Promise<boolean> => {
+    const res = await ipcInvoke('create-server', name, type);
+    return res;
+  };
+
+  const publishFrameGL = async (frame: {
+    data: Uint8ClampedArray;
+    width: number;
+    height: number;
+  }) => {
+    /* const res = */ await ipcInvoke('publish-frame-gl', frame);
+  };
+
+  const publishFrameMetal = async (frame: {
+    data: Uint8ClampedArray;
+    width: number;
+    height: number;
+  }) => {
+    /* const res = */ await ipcInvoke('publish-frame-metal', frame);
+  };
+
   return {
     servers,
     serverByUUID,
     connectToServer,
+    createServer,
+    publishFrameGL,
+    publishFrameMetal,
   };
 };
