@@ -70,7 +70,8 @@
                             "Foundation.framework",
                             'Cocoa.framework',
                             'OpenGL.framework',
-                            'Metal.framework'
+                            'Metal.framework',
+                            'Accelerate.framework'
                         ]
                     }
                 }]
