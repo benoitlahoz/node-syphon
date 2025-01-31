@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: 'SimpleServer',
+  name: 'SimpleMetalServer',
 };
 </script>
 
@@ -17,10 +17,11 @@ import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js
 import { VertexTangentsHelper } from 'three/addons/helpers/VertexTangentsHelper.js';
 import LeePerrySmith from '@/assets/models/LeePerrySmith/LeePerrySmith.glb?url';
 
-const { createServer, publishFrame } = useSyphon();
+const { createServer, publishFrameMetal } = useSyphon();
 
 const canvasRef = ref<HTMLCanvasElement | undefined>();
 let offscreenCanvas;
+let ctx;
 
 let renderer: WebGLRenderer;
 let camera: PerspectiveCamera;
@@ -43,14 +44,16 @@ onMounted(async () => {
   offscreenCanvas = document.createElement('canvas');
   offscreenCanvas.width = canvas.width;
   offscreenCanvas.height = canvas.height;
+  ctx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
 
-  await createServer('ThreeJS');
+  await createServer('ThreeJS', 'metal');
 
   renderer = new THREE.WebGLRenderer({ canvas });
   // renderer.setPixelRatio(window.devicePixelRatio); // FIXME: With real ratio (x2) 1600x1200 are falling to 16fps.
   renderer.setAnimationLoop(animate);
 
-  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 1000);
+  const height = window.innerHeight - 34;
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / height, 1, 1000);
   camera.position.z = 400;
 
   scene = new THREE.Scene();
@@ -128,9 +131,10 @@ onMounted(async () => {
 });
 
 const onWindowResize = () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+  const height = window.innerHeight - 34;
+  camera.aspect = window.innerWidth / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(window.innerWidth, height);
 
   const canvas: HTMLCanvasElement = canvasRef.value!;
   offscreenCanvas.width = canvas.width;
@@ -158,13 +162,11 @@ const animate = async () => {
   // 30fps if we don't send the data.
   stats.end();
 
-  // See: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true
   const canvas: HTMLCanvasElement = canvasRef.value!;
-  const ctx = offscreenCanvas.getContext('2d', { willReadFrequently: true })!;
   ctx.drawImage(canvas, 0, 0);
   const imageData = ctx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
 
-  await publishFrame({ data: imageData.data, width: canvas.width, height: canvas.height });
+  await publishFrameMetal({ data: imageData.data, width: canvas.width, height: canvas.height });
 };
 </script>
 

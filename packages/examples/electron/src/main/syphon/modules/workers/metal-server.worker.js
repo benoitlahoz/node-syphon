@@ -1,5 +1,5 @@
 const { parentPort, workerData } = require('worker_threads');
-const { SyphonOpenGLServer } = require('node-syphon');
+const { SyphonMetalServer } = require('node-syphon');
 
 let server;
 
@@ -11,7 +11,7 @@ parentPort.on('message', async (message) => {
         server = null;
       }
 
-      server = new SyphonOpenGLServer(message.name);
+      server = new SyphonMetalServer(message.name);
 
       break;
     }
@@ -21,9 +21,8 @@ parentPort.on('message', async (message) => {
 
       server.publishImageData(
         frame.data,
-        'GL_TEXTURE_2D',
         { x: 0, y: 0, width: frame.width, height: frame.height },
-        { width: frame.width, height: frame.height },
+        4 * frame.width,
         true,
       );
       message.frame.data = null;

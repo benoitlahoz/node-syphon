@@ -74,9 +74,10 @@ app.whenReady().then(() => {
   bootstrapSyphon();
 
   // Listen to 'open server window'.
-  ipcMain.on('open-server', () => {
+  ipcMain.on('open-server', (_, type: 'gl' | 'metal') => {
+    console.log('TTT', type);
     if (!serverWindow || serverWindow.isDestroyed()) {
-      serverWindow = createWindow('/server');
+      serverWindow = createWindow(type === 'gl' ? '/gl-server' : '/metal-server');
       const pos = serverWindow.getPosition();
       serverWindow.setPosition(pos[0] - 50, pos[1] - 50);
     }

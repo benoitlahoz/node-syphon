@@ -58,17 +58,25 @@ export const useSyphon = () => {
     return serverOrError;
   };
 
-  const createServer = async (name: string) => {
-    const res = await ipcInvoke('create-server', name);
-    console.log('Result', res);
+  const createServer = async (name: string, type: 'gl' | 'metal'): Promise<boolean> => {
+    const res = await ipcInvoke('create-server', name, type);
+    return res;
   };
 
-  const publishFrame = async (frame: {
+  const publishFrameGL = async (frame: {
     data: Uint8ClampedArray;
     width: number;
     height: number;
   }) => {
-    /* const res = */ await ipcInvoke('publish-frame', frame);
+    /* const res = */ await ipcInvoke('publish-frame-gl', frame);
+  };
+
+  const publishFrameMetal = async (frame: {
+    data: Uint8ClampedArray;
+    width: number;
+    height: number;
+  }) => {
+    /* const res = */ await ipcInvoke('publish-frame-metal', frame);
   };
 
   return {
@@ -76,6 +84,7 @@ export const useSyphon = () => {
     serverByUUID,
     connectToServer,
     createServer,
-    publishFrame,
+    publishFrameGL,
+    publishFrameMetal,
   };
 };

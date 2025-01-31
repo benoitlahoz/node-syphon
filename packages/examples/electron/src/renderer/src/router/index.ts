@@ -4,11 +4,15 @@ const routes = [
   {
     path: '/',
     alias: '/index.html',
-    component: () => import('@/components/windows/SimpleClient.vue'),
+    component: () => import('@/components/windows/SimpleGLClient.vue'),
   },
   {
-    path: '/server',
-    component: () => import('@/components/windows/SimpleServer.vue'),
+    path: '/gl-server',
+    component: () => import('@/components/windows/SimpleGLServer.vue'),
+  },
+  {
+    path: '/metal-server',
+    component: () => import('@/components/windows/SimpleMetalServer.vue'),
   },
 ];
 

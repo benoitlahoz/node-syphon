@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: 'SimpleClient',
+  name: 'SimpleGLClient',
 };
 </script>
 
@@ -49,7 +49,7 @@ const onResize = (value: { width: number; height: number }) => {
 };
 
 const openSimpleServer = () => {
-  ipcSend('open-server');
+  ipcSend('open-server', 'metal');
 };
 </script>
 
