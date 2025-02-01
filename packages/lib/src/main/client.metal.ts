@@ -3,28 +3,26 @@ import type { SyphonFrameData } from './universal';
 import type { SyphonServerDescription } from '../common/types';
 
 // TODO: Test with window handle.
-export interface SyphonOpenGLClientConstructorOptions {
+export interface SyphonMetalClientConstructorOptions {
   server: SyphonServerDescription;
   handle?: Buffer;
 }
 
 export type { SyphonFrameData };
 
-export class SyphonOpenGLClient {
+export class SyphonMetalClient {
   private client: any;
   private listeners: ((frame: SyphonFrameData) => void)[] = [];
 
   private isFrameListenerSet = false;
 
   constructor(description: SyphonServerDescription) {
-    this.client = new SyphonAddon.OpenGLClient(description);
+    this.client = new SyphonAddon.MetalClient(description);
   }
 
   public dispose() {
     this.listeners.length = 0;
     this.isFrameListenerSet = false;
-
-    // FIXME: Not sure it is actually calling dipose in addon.
     this.client.dispose(); // Will also remove addon's listener.
   }
 

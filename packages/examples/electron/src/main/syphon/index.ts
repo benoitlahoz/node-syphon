@@ -5,16 +5,19 @@ import {
   SyphonServerDirectory,
   SyphonServerDirectoryListenerChannel,
 } from 'node-syphon';
+import { ElectronSyphonDirectory } from './modules/electron-syphon.directory';
 import { ElectronSyphonGLClient } from './modules/electron-syphon.gl-client';
 import { ElectronSyphonGLServer } from './modules/electron-syphon.gl-server';
 import { ElectronSyphonMetalServer } from './modules/electron-syphon.metal-server';
+import { ElectronSyphonMetalClient } from './modules/electron-syphon.metal-client';
 
-let directory: SyphonServerDirectory;
+let directory: ElectronSyphonDirectory;
 
-let glClient: ElectronSyphonGLClient;
-let glServer: ElectronSyphonGLServer;
+let glClient: ElectronSyphonGLClient | null;
+let glServer: ElectronSyphonGLServer | null;
 
-let metalServer: ElectronSyphonMetalServer;
+let metalClient: ElectronSyphonMetalClient | null;
+let metalServer: ElectronSyphonMetalServer | null;
 
 export const bootstrapSyphon = () => {
   setupDirectory();
@@ -22,64 +25,23 @@ export const bootstrapSyphon = () => {
 
 export const closeSyphon = () => {
   directory.dispose();
+
+  if (glClient) {
+    glClient.dispose();
+  }
+  if (metalClient) {
+    metalClient.dispose();
+  }
+  if (glServer) {
+    glServer.dispose();
+  }
+  if (metalServer) {
+    metalServer.dispose();
+  }
 };
 
 const setupDirectory = () => {
-  directory = new SyphonServerDirectory();
-
-  directory.on(
-    SyphonServerDirectoryListenerChannel.SyphonServerInfoNotification,
-    (message: any) => {
-      console.log('Received info', message);
-      const contents = webContents.getAllWebContents();
-      for (const webContent of contents) {
-        webContent.send(SyphonServerDirectoryListenerChannel.SyphonServerInfoNotification, {
-          message,
-          servers: directory.servers,
-        });
-      }
-    },
-  );
-
-  directory.on(
-    SyphonServerDirectoryListenerChannel.SyphonServerErrorNotification,
-    (message: any) => {
-      console.log('Received error', message);
-      const contents = webContents.getAllWebContents();
-      for (const webContent of contents) {
-        webContent.send(SyphonServerDirectoryListenerChannel.SyphonServerErrorNotification, {
-          message,
-          servers: directory.servers,
-        });
-      }
-    },
-  );
-
-  directory.on(
-    SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
-    (server: any) => {
-      const contents = webContents.getAllWebContents();
-      for (const webContent of contents) {
-        webContent.send(SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification, {
-          server,
-          servers: directory.servers,
-        });
-      }
-    },
-  );
-
-  directory.on(
-    SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification,
-    (server: any) => {
-      const contents = webContents.getAllWebContents();
-      for (const webContent of contents) {
-        webContent.send(SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification, {
-          server,
-          servers: directory.servers,
-        });
-      }
-    },
-  );
+  directory = new ElectronSyphonDirectory();
 
   ipcMain.handle('get-servers', async (_event: Electron.IpcMainInvokeEvent) => {
     return directory.servers;
@@ -88,9 +50,9 @@ const setupDirectory = () => {
   ipcMain.handle(
     'connect-server',
 
-    //  TODO: type for SyphonServerDescriptionUUIDKey in 'node-syphon'.
+    //  TODO: type for SyphonServerDescriptionUUIDKey, etc. in 'node-syphon'.
 
-    async (_event: Electron.IpcMainInvokeEvent, uuid: string) => {
+    async (_event: Electron.IpcMainInvokeEvent, uuid: string, type: 'metal' | 'gl') => {
       const server = directory.servers.find(
         (description: SyphonServerDescription) =>
           (description[SyphonServerDescriptionUUIDKey] = uuid),
@@ -100,10 +62,35 @@ const setupDirectory = () => {
         return new Error(`No server to connect with uuid '${uuid}'.`);
       }
 
-      if (!glClient) {
-        glClient = new ElectronSyphonGLClient();
+      switch (type) {
+        // FIXME: Not disposed correctly when switching from renderer. Frames are still flowing.
+
+        case 'gl': {
+          if (metalClient) {
+            metalClient.dispose();
+            metalClient = null;
+          }
+
+          if (!glClient) {
+            glClient = new ElectronSyphonGLClient();
+          }
+          glClient.connect(server);
+          break;
+        }
+        case 'metal': {
+          if (glClient) {
+            console.log('Will dispose GL, switching to metal');
+            glClient.dispose();
+            glClient = null;
+          }
+
+          if (!metalClient) {
+            metalClient = new ElectronSyphonMetalClient();
+          }
+          metalClient.connect(server);
+          break;
+        }
       }
-      glClient.connect(server);
 
       return server;
     },
@@ -111,17 +98,29 @@ const setupDirectory = () => {
 
   // Client will pull the frame at its own pace (requestAnimationFrame).
   ipcMain.handle('get-frame', (_event: Electron.IpcMainInvokeEvent, uuid: string) => {
-    if (!glClient) {
+    if (!glClient && !metalClient) {
       return new Error(`Trying to get a frame from a client that is not connected.`);
     }
 
-    if (glClient.serverUUID !== uuid) {
-      return new Error(
-        `Connected server is not the same as the one from which a frame is requested.`,
-      );
+    if (glClient) {
+      if (glClient.serverUUID !== uuid) {
+        return new Error(
+          `Connected server is not the same as the one from which a frame is requested.`,
+        );
+      }
+
+      return glClient.frame;
+    } else if (metalClient) {
+      if (metalClient.serverUUID !== uuid) {
+        return new Error(
+          `Connected server is not the same as the one from which a frame is requested.`,
+        );
+      }
+
+      return metalClient.frame;
     }
 
-    return glClient.frame;
+    return;
   });
 
   ipcMain.handle(
@@ -152,7 +151,7 @@ const setupDirectory = () => {
       _event: Electron.IpcMainInvokeEvent,
       frame: { data: Uint8ClampedArray; width: number; height: number },
     ) => {
-      glServer.publishImageData(frame);
+      glServer!.publishImageData(frame);
       return true;
     },
   );
@@ -163,7 +162,7 @@ const setupDirectory = () => {
       _event: Electron.IpcMainInvokeEvent,
       frame: { data: Uint8ClampedArray; width: number; height: number },
     ) => {
-      metalServer.publishImageData(frame);
+      metalServer!.publishImageData(frame);
       return true;
     },
   );

@@ -1,6 +1,7 @@
 import { resolve } from 'path';
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
 import vue from '@vitejs/plugin-vue';
+import svgLoader from 'vite-svg-loader';
 // import vueDevTools from 'vite-plugin-vue-devtools';
 import autoprefixer from 'autoprefixer';
 // @ts-ignore Module resolution.
@@ -29,6 +30,6 @@ export default defineConfig({
       },
     },
     // @ts-ignore Unknown error.
-    plugins: [vue() /*, vueDevTools() */],
+    plugins: [vue(), svgLoader() /*, vueDevTools() */],
   },
 });

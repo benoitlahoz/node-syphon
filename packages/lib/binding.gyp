@@ -9,8 +9,6 @@
             'sources': [
                 # Helpers.
                 "<!@(node -p \"require('fs').readdirSync('./src/addon/helpers').map(f=>'src/addon/helpers/'+f).join(' ')\")",
-                # OpenGL specific.
-                "<!@(node -p \"require('fs').readdirSync('./src/addon/opengl').map(f=>'src/addon/opengl/'+f).join(' ')\")",
                 # Directory.
                 "<!@(node -p \"require('fs').readdirSync('./src/addon/directory').map(f=>'src/addon/directory/'+f).join(' ')\")",
                 # Client.
@@ -70,7 +68,8 @@
                             "Foundation.framework",
                             'Cocoa.framework',
                             'OpenGL.framework',
-                            'Metal.framework'
+                            'Metal.framework',
+                            'Accelerate.framework'
                         ]
                     }
                 }]

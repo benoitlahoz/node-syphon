@@ -34,6 +34,9 @@ parentPort.on('message', async (message) => {
     case 'dispose': {
       if (server) {
         server.dispose();
+        parentPort.postMessage({
+          type: 'dispose',
+        });
       }
     }
   }

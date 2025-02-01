@@ -3,8 +3,8 @@
 
 #include "OpenGLServer.h"
 
-#import "../helpers/NodeSyphonHelpers.h"
-#include "../opengl/OpenGLHelper.h"
+#import "../helpers/ServerDescriptionHelper.h"
+#include "../helpers/OpenGLHelper.h"
 
 using namespace syphon;
 
@@ -126,7 +126,7 @@ Napi::Value OpenGLServerWrapper::GetName(const Napi::CallbackInfo &info)
 
 Napi::Value OpenGLServerWrapper::GetServerDescription(const Napi::CallbackInfo &info) 
 {
-  return [NodeSyphonHelpers serverDescription:[m_server serverDescription] info:info];
+  return ServerDescriptionHelper::ToNapiObject([m_server serverDescription], info);
 }
 
 Napi::Value OpenGLServerWrapper::HasClients(const Napi::CallbackInfo &info) 

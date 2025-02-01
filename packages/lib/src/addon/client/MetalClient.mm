@@ -2,17 +2,16 @@
 #include <iostream>
 #include <unistd.h>
 
-#include "OpenGLClient.h"
+#include "MetalClient.h"
 
 #import "../helpers/ServerDescriptionHelper.h"
-#include "../helpers/OpenGLHelper.h"
 
 using namespace syphon;
 
-Napi::FunctionReference OpenGLClientWrapper::constructor;
+Napi::FunctionReference MetalClientWrapper::constructor;
 
-OpenGLClientWrapper::OpenGLClientWrapper(const Napi::CallbackInfo& info)
-: Napi::ObjectWrap<OpenGLClientWrapper>(info)
+MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo& info)
+: Napi::ObjectWrap<MetalClientWrapper>(info)
 {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env); 
@@ -30,47 +29,52 @@ OpenGLClientWrapper::OpenGLClientWrapper(const Napi::CallbackInfo& info)
   }
   NSDictionary * serverDescription = ServerDescriptionHelper::FromNapiObject(description);
 
-  // Bootstrap a context for Syphon client.
-  CGLContextObj cgl_ctx = OpenGLHelper::CreateContext(env);
+  m_device =  MTLCreateSystemDefaultDevice();
+  m_queue = [m_device newCommandQueue];
 
   m_client = NULL;
   // Init listener to NULL until a first 'On' is called to bind a callback.
   m_frame_listener = NULL;
 
-  m_client = [[SyphonOpenGLClient alloc] initWithServerDescription: serverDescription
-                                                            context: cgl_ctx
-                                                            options: nil 
-                                                            newFrameHandler: ^(SyphonOpenGLClient *client) {
+  m_client = [[SyphonMetalClient alloc] initWithServerDescription: serverDescription
+                                                           device: m_device
+                                                          options: nil 
+                                                  newFrameHandler: ^(SyphonMetalClient *client) {
     if (client) {
-      CGLContextObj ctx = client.context;
-      CGLSetCurrentContext(ctx);
+      id<MTLTexture> frame = client.newFrameImage;
+      NSUInteger width = frame.width;
+      NSUInteger height = frame.height;
+      MTLRegion region = MTLRegionMake2D(0, 0, width, height);
 
-      SyphonOpenGLImage * frame = client.newFrameImage;
+      uint8_t * pixel_buffer = new uint8_t[width * height * 4];
+      std::memset(pixel_buffer, 0, width * height * 4);
 
-      GLuint texture = frame.textureName;
-      size_t width = frame.textureSize.width;
-      size_t height = frame.textureSize.height;
+      [frame getBytes: pixel_buffer
+          bytesPerRow: 4 * width
+           fromRegion: region
+          mipmapLevel: 0];
 
-      uint8_t * pixel_buffer = OpenGLHelper::TextureToUint8(texture, width, height);
-
+      // Convert from BGRA to RGBA: could have an option to do it or not.
+      vImage_Buffer buffer = { .height = height, .width = width, .rowBytes = width * 4, .data = pixel_buffer };
+      const uint8_t map[] = { 2, 1, 0, 3 };
+      vImagePermuteChannels_ARGB8888(&buffer, &buffer, map, kvImageNoFlags);
+      
       if (m_frame_listener != NULL) {
-        m_frame_listener->Call(pixel_buffer, width, height);
+        m_frame_listener->Call((uint8_t *)buffer.data, width, height);
       }
 
       [frame release];
-
-      CGLSetCurrentContext(NULL);
-    }  
+    }   
   }];
 
   [serverDescription release];
 
   if (![m_client isValid]) {
-    Napi::Error::New(env, "SyphonOpenGLClient is not valid.").ThrowAsJavaScriptException();
+    Napi::Error::New(env, "SyphonMetalClient is not valid.").ThrowAsJavaScriptException();
   }
 }
 
-OpenGLClientWrapper::~OpenGLClientWrapper()
+MetalClientWrapper::~MetalClientWrapper()
 {
   // Object is automatically destroyed.
 
@@ -78,6 +82,7 @@ OpenGLClientWrapper::~OpenGLClientWrapper()
     m_frame_listener->Dispose();
     m_frame_listener = NULL;
   }
+  
 
   if (m_client != NULL) {
     [m_client stop];
@@ -86,7 +91,7 @@ OpenGLClientWrapper::~OpenGLClientWrapper()
   }
 }
 
-void OpenGLClientWrapper::Dispose(const Napi::CallbackInfo& info)
+void MetalClientWrapper::Dispose(const Napi::CallbackInfo& info)
 {
   // User explicitly called 'dispose'.
 
@@ -102,7 +107,7 @@ void OpenGLClientWrapper::Dispose(const Napi::CallbackInfo& info)
   }
 }
 
-void OpenGLClientWrapper::On(const Napi::CallbackInfo &info)
+void MetalClientWrapper::On(const Napi::CallbackInfo &info)
 {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
@@ -136,7 +141,7 @@ void OpenGLClientWrapper::On(const Napi::CallbackInfo &info)
   }
 }
 
-void OpenGLClientWrapper::Off(const Napi::CallbackInfo &info)
+void MetalClientWrapper::Off(const Napi::CallbackInfo &info)
 {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
@@ -162,25 +167,25 @@ void OpenGLClientWrapper::Off(const Napi::CallbackInfo &info)
 
 #pragma mark NAPI methods.
 
-bool OpenGLClientWrapper::HasInstance(Napi::Value value)
+bool MetalClientWrapper::HasInstance(Napi::Value value)
 {
   return value.As<Napi::Object>().InstanceOf(constructor.Value());
 }
 
-Napi::Object OpenGLClientWrapper::Init(Napi::Env env, Napi::Object exports)
+Napi::Object MetalClientWrapper::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
 
   Napi::Function func = DefineClass(env, "OpenGLClient", {
-    InstanceMethod("dispose", &OpenGLClientWrapper::Dispose),
-    InstanceMethod("on", &OpenGLClientWrapper::On),
-    InstanceMethod("off", &OpenGLClientWrapper::Off),
+    InstanceMethod("dispose", &MetalClientWrapper::Dispose),
+    InstanceMethod("on", &MetalClientWrapper::On),
+    InstanceMethod("off", &MetalClientWrapper::Off),
   });
 
   constructor = Napi::Persistent(func);
   constructor.SuppressDestruct();
 
-  exports.Set("OpenGLClient", func);
+  exports.Set("MetalClient", func);
 
   return exports;
 

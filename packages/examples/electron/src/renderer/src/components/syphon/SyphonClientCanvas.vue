@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: 'SyphonCanvas',
+  name: 'SyphonClientCanvas',
 };
 </script>
 
@@ -18,7 +18,10 @@ const ipcInvoke = window.electron.ipcRenderer.invoke;
 
 const { connectToServer } = useSyphon();
 
-const { server } = defineProps<{ server?: SyphonServerDescription }>();
+const { server, type = 'gl' } = defineProps<{
+  server?: SyphonServerDescription;
+  type?: 'gl' | 'metal';
+}>();
 const emit = defineEmits(['fps', 'resize']);
 
 const canvasRef = ref<HTMLCanvasElement>();
@@ -43,7 +46,7 @@ watch(
       // Cancel previous animation frame.
       if (animationFrameReqId) cancelAnimationFrame(animationFrameReqId);
 
-      const serverOrError = await connectToServer(server[SyphonServerDescriptionUUIDKey]);
+      const serverOrError = await connectToServer(server[SyphonServerDescriptionUUIDKey], type);
 
       if (serverOrError instanceof Error) {
         console.error(serverOrError);
@@ -80,7 +83,9 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  worker.terminate();
+  if (worker) {
+    worker.terminate();
+  }
 });
 
 const getFrame = async () => {

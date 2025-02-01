@@ -22,9 +22,9 @@ export const useSyphon = () => {
 
     ipcOn(
       SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
-      (_, payload: { server: SyphonServerDescription; servers: SyphonServerDescription[] }) => {
+      (_, payload: { message: SyphonServerDescription; servers: SyphonServerDescription[] }) => {
         console.log(
-          `Server with name '${payload.server[SyphonServerDescriptionAppNameKey]}${payload.server[SyphonServerDescriptionNameKey] ? ` - ${payload.server[SyphonServerDescriptionNameKey]}` : ''}' connected.`,
+          `Server with name '${payload.message[SyphonServerDescriptionAppNameKey]}${payload.message[SyphonServerDescriptionNameKey] ? ` - ${payload.message[SyphonServerDescriptionNameKey]}` : ''}' connected.`,
         );
         servers.value = payload.servers;
       },
@@ -34,9 +34,9 @@ export const useSyphon = () => {
 
     ipcOn(
       SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification,
-      (_, payload: { server: SyphonServerDescription; servers: SyphonServerDescription[] }) => {
+      (_, payload: { message: SyphonServerDescription; servers: SyphonServerDescription[] }) => {
         console.log(
-          `Server with name '${payload.server[SyphonServerDescriptionAppNameKey]}' disconnected.`,
+          `Server with name '${payload.message[SyphonServerDescriptionAppNameKey]}' disconnected.`,
         );
         servers.value = payload.servers;
       },
@@ -49,12 +49,19 @@ export const useSyphon = () => {
     );
   };
 
-  const connectToServer = async (uuid: string): Promise<SyphonServerDescription | Error> => {
+  const connectToServer = async (
+    uuid: string,
+    type: 'gl' | 'metal',
+  ): Promise<SyphonServerDescription | Error> => {
     // Update existing servers.
     servers.value = await ipcInvoke('get-servers');
 
     // Try to connect to server.
-    const serverOrError: SyphonServerDescription | Error = await ipcInvoke('connect-server', uuid);
+    const serverOrError: SyphonServerDescription | Error = await ipcInvoke(
+      'connect-server',
+      uuid,
+      type,
+    );
     return serverOrError;
   };
 

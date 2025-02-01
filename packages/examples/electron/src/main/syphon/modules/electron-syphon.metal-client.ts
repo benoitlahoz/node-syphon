@@ -2,9 +2,9 @@ import { join } from 'node:path';
 import { Worker } from 'worker_threads';
 import { SyphonFrameData, SyphonServerDescription } from 'node-syphon';
 import type { SyphonClientFrameDTO } from '@/types';
-import SyphonClientWorkerURL from './workers/gl-client.worker?worker&url';
+import SyphonClientWorkerURL from './workers/metal-client.worker?worker&url';
 
-export class ElectronSyphonGLClient {
+export class ElectronSyphonMetalClient {
   private worker: any;
   private currentFrame?: SyphonFrameData;
   private server: SyphonServerDescription | undefined;
@@ -13,7 +13,7 @@ export class ElectronSyphonGLClient {
     this.worker = new Worker(join(__dirname, SyphonClientWorkerURL));
     this.worker.on('message', this.onWorkerMessage.bind(this));
     this.worker.on('error', (err: unknown) =>
-      console.error(`Error in OpenGL client worker: ${err}`),
+      console.error(`Error in Metal client worker: ${err}`),
     );
   }
 

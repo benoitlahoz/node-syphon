@@ -4,12 +4,10 @@
 #include <napi.h>
 #include <map>
 
-#import <Foundation/Foundation.H>
-#import <Cocoa/Cocoa.h>
-#import <Metal/Metal.h>
-#import <Syphon/Syphon.h>
-
-// Macros.
+#include <Foundation/Foundation.H>
+#include <Cocoa/Cocoa.h>
+#include <Metal/Metal.h>
+#include <Syphon/Syphon.h>
 
 #include "../helpers/macros.h"
 

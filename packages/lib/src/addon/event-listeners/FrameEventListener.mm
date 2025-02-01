@@ -19,17 +19,22 @@ void FrameEventListener::Set(Napi::Env env, Napi::Function listener) {
 
 FrameEventListener::~FrameEventListener()
 {
-    m_listener = NULL;
+    if (m_listener != NULL) {
+        m_listener.Release(); 
+        m_listener = NULL;
+    }
 }
 
 void FrameEventListener::Dispose()
 {
-    m_listener = NULL;
+    if (m_listener != NULL) {
+        m_listener.Release(); 
+        m_listener = NULL;
+    }
 }
 
 void FrameEventListener::Call(uint8_t * buffer, size_t width, size_t height) {
     if (m_listener != NULL) {
-
         auto callback = [buffer, width, height](Napi::Env env, Napi::Function js_callback) {
 
             auto napi_buffer = Napi::Buffer<uint8_t>::NewOrCopy(env, buffer, width * height * 4, [](Napi::BasicEnv, void* finalizeData) {
@@ -48,6 +53,5 @@ void FrameEventListener::Call(uint8_t * buffer, size_t width, size_t height) {
         };
 
         m_listener.BlockingCall(callback); 
-
     }
 }
