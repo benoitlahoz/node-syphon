@@ -33,6 +33,7 @@ function createWindow(route: string): BrowserWindow {
     titleBarStyle: 'hidden',
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
+    trafficLightPosition: { x: 9, y: 10 },
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -75,7 +76,6 @@ app.whenReady().then(() => {
 
   // Listen to 'open server window'.
   ipcMain.on('open-server', (_, type: 'gl' | 'metal') => {
-    console.log('TTT', type);
     if (!serverWindow || serverWindow.isDestroyed()) {
       serverWindow = createWindow(type === 'gl' ? '/gl-server' : '/metal-server');
       const pos = serverWindow.getPosition();

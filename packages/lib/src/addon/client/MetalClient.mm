@@ -4,8 +4,7 @@
 
 #include "MetalClient.h"
 
-#include "../helpers/NodeSyphonHelpers.h"
-#include "../opengl/OpenGLHelper.h"
+#import "../helpers/ServerDescriptionHelper.h"
 
 using namespace syphon;
 
@@ -28,32 +27,19 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo& info)
     const char * err = "Invalid server description.";
     Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
   }
-
-  m_client = NULL;
-
-  NSMutableDictionary *serverDescription = [[NSMutableDictionary alloc] init];
-
-  [serverDescription setObject:[NSString stringWithUTF8String:description.Get("SyphonServerDescriptionAppNameKey").As<Napi::String>().Utf8Value().c_str()] forKey:SyphonServerDescriptionAppNameKey];
-  [serverDescription setObject:[NSString stringWithUTF8String:description.Get("SyphonServerDescriptionNameKey").As<Napi::String>().Utf8Value().c_str()] forKey:SyphonServerDescriptionNameKey];
-  [serverDescription setObject:[NSString stringWithUTF8String:description.Get("SyphonServerDescriptionUUIDKey").As<Napi::String>().Utf8Value().c_str()] forKey:SyphonServerDescriptionUUIDKey];
-  [serverDescription setObject:[NSNumber numberWithUnsignedInt:description.Get("SyphonServerDescriptionDictionaryVersionKey").As<Napi::Number>().Uint32Value()] forKey:@"SyphonServerDescriptionDictionaryVersionKey"];
-
-  // TODO: Get from description itself.
-  NSDictionary *surfaces = [NSDictionary dictionaryWithObjectsAndKeys: @"SyphonSurfaceTypeIOSurface", @"SyphonSurfaceType", nil];
-  [serverDescription setObject:[NSArray arrayWithObject:surfaces] forKey:@"SyphonServerDescriptionSurfacesKey"];
+  NSDictionary * serverDescription = ServerDescriptionHelper::FromNapiObject(description);
 
   m_device =  MTLCreateSystemDefaultDevice();
   m_queue = [m_device newCommandQueue];
 
+  m_client = NULL;
   // Init listener to NULL until a first 'On' is called to bind a callback.
   m_frame_listener = NULL;
 
-  m_client = [[SyphonMetalClient alloc] initWithServerDescription: [serverDescription copy]
+  m_client = [[SyphonMetalClient alloc] initWithServerDescription: serverDescription
                                                            device: m_device
                                                           options: nil 
                                                   newFrameHandler: ^(SyphonMetalClient *client) {
-
-
     if (client) {
       id<MTLTexture> frame = client.newFrameImage;
       NSUInteger width = frame.width;
@@ -73,12 +59,15 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo& info)
       const uint8_t map[] = { 2, 1, 0, 3 };
       vImagePermuteChannels_ARGB8888(&buffer, &buffer, map, kvImageNoFlags);
       
-      m_frame_listener->Call((uint8_t *)buffer.data, width, height);
+      if (m_frame_listener != NULL) {
+        m_frame_listener->Call((uint8_t *)buffer.data, width, height);
+      }
 
       [frame release];
-    }
-        
+    }   
   }];
+
+  [serverDescription release];
 
   if (![m_client isValid]) {
     Napi::Error::New(env, "SyphonMetalClient is not valid.").ThrowAsJavaScriptException();
@@ -89,7 +78,11 @@ MetalClientWrapper::~MetalClientWrapper()
 {
   // Object is automatically destroyed.
 
-  m_frame_listener->Dispose();
+  if (m_frame_listener != NULL) {
+    m_frame_listener->Dispose();
+    m_frame_listener = NULL;
+  }
+  
 
   if (m_client != NULL) {
     [m_client stop];
@@ -102,7 +95,10 @@ void MetalClientWrapper::Dispose(const Napi::CallbackInfo& info)
 {
   // User explicitly called 'dispose'.
 
-  m_frame_listener->Dispose();
+  if (m_frame_listener != NULL) {
+    m_frame_listener->Dispose();
+    m_frame_listener = NULL;
+  }
 
   if (m_client != NULL) {
     [m_client stop];

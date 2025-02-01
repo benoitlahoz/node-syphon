@@ -11,6 +11,10 @@ const routes = [
     component: () => import('@/components/windows/SimpleGLServer.vue'),
   },
   {
+    path: '/metal-client',
+    component: () => import('@/components/windows/SimpleMetalClient.vue'),
+  },
+  {
     path: '/metal-server',
     component: () => import('@/components/windows/SimpleMetalServer.vue'),
   },

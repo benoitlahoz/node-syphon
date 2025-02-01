@@ -3,7 +3,7 @@
 
 #include "MetalServer.h"
 
-#import "../helpers/NodeSyphonHelpers.h"
+#import "../helpers/ServerDescriptionHelper.h"
 
 using namespace syphon;
 
@@ -115,7 +115,7 @@ Napi::Value MetalServerWrapper::GetName(const Napi::CallbackInfo &info)
 
 Napi::Value MetalServerWrapper::GetServerDescription(const Napi::CallbackInfo &info) 
 {
-  return [NodeSyphonHelpers serverDescription:[m_server serverDescription] info:info];
+  return ServerDescriptionHelper::ToNapiObject([m_server serverDescription], info);
 }
 
 Napi::Value MetalServerWrapper::HasClients(const Napi::CallbackInfo &info) 

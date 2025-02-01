@@ -23,6 +23,8 @@ export class SyphonOpenGLClient {
   public dispose() {
     this.listeners.length = 0;
     this.isFrameListenerSet = false;
+
+    // FIXME: Not sure it is actually calling dipose in addon.
     this.client.dispose(); // Will also remove addon's listener.
   }
 

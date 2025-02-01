@@ -37,7 +37,6 @@ void sigHandler(int sig) {
 }
 
 NSString * toJSON(NSString *type, NSDictionary *dic) {
-
     NSString *json = [NSString stringWithFormat:
                         @"{"
                         @"\"%@\": \"%@\","
@@ -88,7 +87,6 @@ NSString * toJSON(NSString *type, NSDictionary *dic) {
                       ];
     
     return json;
-
 }
 
 using namespace syphon;

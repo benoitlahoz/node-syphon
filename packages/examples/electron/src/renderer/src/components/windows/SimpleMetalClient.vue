@@ -12,8 +12,8 @@ import {
   SyphonServerDescriptionAppNameKey,
   SyphonServerDescriptionUUIDKey,
 } from 'node-syphon/universal';
-import { useRouter } from 'vue-router';
 
+import { useRouter } from 'vue-router';
 import { useSyphon } from '@/composables/useSyphon';
 
 import {
@@ -52,11 +52,11 @@ const onResize = (value: { width: number; height: number }) => {
 };
 
 const openSimpleServer = () => {
-  ipcSend('open-server', 'gl');
+  ipcSend('open-server', 'metal');
 };
 
-const onSwitchToMetal = () => {
-  router.replace({ path: '/metal-client' });
+const onSwitchToOpenGL = () => {
+  router.replace({ path: '/' });
 };
 </script>
 
@@ -68,40 +68,40 @@ const onSwitchToMetal = () => {
         style="padding-left: 75px; margin-right: -66px;"
       )
         .no-drag.text-muted-foreground.titlebar-icon(
-          @click="onSwitchToMetal"
-        ) Switch to Metal
-      .font-semibold Electron Simple Client (OpenGL)
+          @click="onSwitchToOpenGL"
+        ) Switch to OpenGL
+      .font-semibold Electron Simple Client (Metal)
       .flex-1.flex.justify-end.pr-4 
         hard-drive-upload(
           :size="14",
           @click="openSimpleServer"
         ).no-drag.titlebar-icon
     .w-full.p-3.flex.items-center
-      .flex-1
-        select-main(
-          @update:model-value="onChange"
-        )
-          select-trigger
-            select-value(
-              placeholder="Select a server..."
-            )
-          select-content
-            select-group 
-              select-item(
-                v-for="server in servers",
-                :key="server[SyphonServerDescriptionUUIDKey]",
-                :value="server[SyphonServerDescriptionUUIDKey]"
-              ) {{ server[SyphonServerDescriptionAppNameKey] }} {{ server[SyphonServerDescriptionNameKey] ? ` - ${server[SyphonServerDescriptionNameKey]}` : '' }}
+      select-main(
+        @update:model-value="onChange"
+      )
+        select-trigger(
+          class="w-[30%]"
+        ) 
+          select-value(
+            placeholder="Select a server..."
+          )
+        select-content
+          select-group 
+            select-item(
+              v-for="server in servers",
+              :key="server[SyphonServerDescriptionUUIDKey]",
+              :value="server[SyphonServerDescriptionUUIDKey]"
+            ) {{ server[SyphonServerDescriptionAppNameKey] }} {{ server[SyphonServerDescriptionNameKey] ? ` - ${server[SyphonServerDescriptionNameKey]}` : '' }}
 
-      .flex-1.rounded.border.border-input.h-10.flex.items-center.justify-center.ml-4.mr-4.text-sm.text-background.font-semibold.console(
+      .rounded.border.border-input.h-10.flex.items-center.justify-center.ml-4.mr-4.text-sm.text-background.font-semibold.console(
         class="w-[30%]"
       ) {{ width }} x {{ height }} : {{ fps }} FPS
-      .flex-1
   .bg-background.w-full.flex-1.flex.flex-col
     .w-full.flex.flex-1.bg-black.overflow-hidden
       syphon-client-canvas(
         :server="serverDescription",
-        type="gl",
+        type="metal",
         @fps="onFpsChange",
         @resize="onResize"
       ).w-full

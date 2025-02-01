@@ -1,5 +1,5 @@
 const { parentPort, workerData } = require('worker_threads');
-const { SyphonOpenGLClient } = require('node-syphon');
+const { SyphonMetalClient } = require('node-syphon');
 
 let client;
 
@@ -11,7 +11,7 @@ parentPort.on('message', async (message) => {
         client = null;
       }
 
-      client = new SyphonOpenGLClient(message.server);
+      client = new SyphonMetalClient(message.server);
 
       client.on('frame', (frame) => {
         parentPort.postMessage({

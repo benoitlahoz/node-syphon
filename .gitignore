@@ -1,7 +1,6 @@
 /node_modules
 /**/node_modules
 /**/dist
-/**/old
 /.pastebin
 
 /lib/node-syphon/node_modules
@@ -11,8 +10,3 @@
 .DS_Store
 lerna-debug.log
 Syphon-Framework
-
-
-
-.nx/cache
-.nx/workspace-data

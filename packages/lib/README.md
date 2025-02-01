@@ -4,12 +4,7 @@
 
 Experimental and superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syphon-Framework) and `node.js`.
 
-As of `v0.4.0` node-syphon provides ways to listen to servers' directory, **copy pixels** to a server and **get pixels** from a client. Using a zero copy texture is on the roadmap, see **TODO** section for texture binding (contributors welcome).
-
-## Motivation
-
-I've been using Syphon for years for my artistic work, with different applications: Quartz Composer, VDMX, Millumin, Processing, etc.
-At the time of building my own multiplatform apps, using `Electron` and web technologies, I want (and I need) Syphon to be a first class citizen of the visual workflow.
+As of `v0.6.4` node-syphon provides ways to listen to servers' directory, **copy pixels** to a server and **get pixels** from a client. Using a zero copy texture is on the roadmap, see **TODO** section for texture binding (contributors welcome).
 
 ## Install
 
@@ -17,34 +12,9 @@ At the time of building my own multiplatform apps, using `Electron` and web tech
 yarn add node-syphon
 ```
 
-## Build
-
-Clone:
-`git clone https://github.com/benoitlahoz/node-syphon.git`
-
-Add Syphon:
-`git submodule update --init`
-
-In Syphon Framework's XCode project:
-
-- Replace the _Dynamic Library Install Name_ property with this `@loader_path/../Frameworks/$(EXECUTABLE_PATH)`.
-- Replace the _Dynamic Library Install Name Base_ property with this `@rpath`.
-- Remove any code signing rule.
-
-Install monorepo:
-`yarn`
-
-Bootstrap Lerna:
-`lerna bootstrap`
-
-Build library and examples:
-`yarn build`
-
-This will build Syphon, the node-addon and the JS library and copy everything in the `dist` folder.
-
 ## Usage
 
-See [examples](https://github.com/benoitlahoz/node-syphon/tree/main/examples).
+See [examples](https://github.com/benoitlahoz/node-syphon/tree/main/packages/examples).
 
 ### Client
 
@@ -179,5 +149,6 @@ As of v0.6.1, the `electron` **client** example getting a **1920x1080** image fr
 
 ## TODO
 
-- Flip texture vertically in the addon.
+- Flip texture vertically in the addon (with Accelerate.framework?).
+- Test the server description NSImage->Napi::Buffer.
 - Explore new Electron's [`sharedTexture`](https://www.electronjs.org/docs/latest/api/structures/offscreen-shared-texture) to avoid copying pixels.

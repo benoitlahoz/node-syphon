@@ -27,7 +27,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-vue-next": "^0.474.0",
-    "node-syphon": "0.6.2",
+    "node-syphon": "^0.6.4",
     "radix-vue": "^1.9.12",
     "stats-js": "^1.0.1",
     "tailwindcss-animate": "^1.0.7",
@@ -61,6 +61,7 @@
     "typescript": "^5.5.2",
     "vite": "^5.3.1",
     "vite-plugin-vue-devtools": "^7.7.1",
+    "vite-svg-loader": "^5.1.0",
     "vue": "^3.4.30",
     "vue-tsc": "^2.0.22"
   }

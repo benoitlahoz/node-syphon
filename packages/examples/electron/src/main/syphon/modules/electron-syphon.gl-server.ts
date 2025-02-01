@@ -7,6 +7,7 @@ export class ElectronSyphonGLServer {
 
   constructor(name: string) {
     this.worker = new Worker(join(__dirname, SyphonServerWorkerURL));
+    this.worker.on('message', this.onWorkerMessage.bind(this));
     this.worker.on('error', (err: unknown) =>
       console.error(`Error in OpenGL server worker: ${err}`),
     );
@@ -20,7 +21,15 @@ export class ElectronSyphonGLServer {
     this.worker.postMessage({
       cmd: 'dispose',
     });
-    this.worker.terminate();
+  }
+
+  private onWorkerMessage(payload: { type: string }) {
+    switch (payload.type) {
+      case 'dispose': {
+        this.worker.terminate();
+        break;
+      }
+    }
   }
 
   public async publishImageData(frame: {

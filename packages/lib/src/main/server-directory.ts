@@ -43,14 +43,14 @@ export class SyphonServerDirectory {
   /**
    * Current servers in directory.
    */
-  private _servers: Array<SyphonServerDescription> = [];
+  private _servers: SyphonServerDescription[] = [];
 
   /**
    * Listeners on servers' notifications.
    */
   private _listeners: Record<
     SyphonServerDirectoryListenerChannel | any,
-    Array<(...args: any[]) => void>
+    ((...args: any[]) => void)[]
   > = {};
 
   constructor() {
@@ -100,7 +100,7 @@ export class SyphonServerDirectory {
     return this._serverDirectoryRunning;
   }
 
-  public get servers(): Array<SyphonServerDescription> {
+  public get servers(): SyphonServerDescription[] {
     return this._servers;
   }
 
