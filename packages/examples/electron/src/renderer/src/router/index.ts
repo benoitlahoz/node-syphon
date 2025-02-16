@@ -18,6 +18,10 @@ const routes = [
     path: '/metal-server',
     component: () => import('@/components/windows/SimpleMetalServer.vue'),
   },
+  {
+    path: '/offscreen-server',
+    component: () => import('@/components/windows/OffscreenGLServer.vue'),
+  },
 ];
 
 export const router = createRouter({

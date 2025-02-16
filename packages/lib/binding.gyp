@@ -64,6 +64,7 @@
                     ],
                     'link_settings': {
                         'libraries': [
+                            'IOSurface.framework',
                             "Syphon.framework",
                             "Foundation.framework",
                             'Cocoa.framework',

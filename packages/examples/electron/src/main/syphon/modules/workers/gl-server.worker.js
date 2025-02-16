@@ -16,7 +16,7 @@ parentPort.on('message', async (message) => {
       break;
     }
 
-    case 'publish': {
+    case 'publish-data': {
       const frame = message.frame;
 
       server.publishImageData(
@@ -28,6 +28,25 @@ parentPort.on('message', async (message) => {
       );
       message.frame.data = null;
       message.frame = null;
+      break;
+    }
+
+    case 'publish-surface': {
+      const frame = message.frame;
+      // FIXME: Conversion doesn't work.
+      const buffer = Buffer.from(frame.texture);
+      // console.log('TEX', frame.texture);
+      console.log('BUF', buffer, frame);
+
+      server.publishSurfaceHandle(
+        // https://github.com/nodejs/node/issues/27266
+        buffer,
+        'GL_TEXTURE_RECTANGLE_EXT',
+        { x: 0, y: 0, width: frame.width, height: frame.height },
+        { width: frame.width, height: frame.height },
+        true,
+      );
+
       break;
     }
 

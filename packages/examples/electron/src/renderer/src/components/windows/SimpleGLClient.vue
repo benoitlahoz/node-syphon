@@ -70,7 +70,7 @@ const onSwitchToMetal = () => {
         .no-drag.text-muted-foreground.titlebar-icon(
           @click="onSwitchToMetal"
         ) Switch to Metal
-      .font-semibold Electron Simple Client (OpenGL)
+      .font-semibold Electron Simple Client (OpenGL - IPC data)
       .flex-1.flex.justify-end.pr-4 
         hard-drive-upload(
           :size="14",

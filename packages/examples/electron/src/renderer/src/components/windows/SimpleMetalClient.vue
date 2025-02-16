@@ -70,7 +70,7 @@ const onSwitchToOpenGL = () => {
         .no-drag.text-muted-foreground.titlebar-icon(
           @click="onSwitchToOpenGL"
         ) Switch to OpenGL
-      .font-semibold Electron Simple Client (Metal)
+      .font-semibold Electron Simple Client (Metal - IPC data)
       .flex-1.flex.justify-end.pr-4 
         hard-drive-upload(
           :size="14",

@@ -38,7 +38,7 @@ onBeforeUnmount(() => {
 <template lang="pug">
 .w-full.h-full.flex.flex-col.text-sm
   .bg-background-dark
-    .titlebar.w-full.font-semibold Electron Simple Server (Metal)
+    .titlebar.w-full.font-semibold Electron Simple Server (Metal - IPC data)
   .bg-background.w-full.flex-1.flex.flex-col
     .w-full.flex.flex-1.bg-black.overflow-hidden
       canvas(

@@ -1,9 +1,11 @@
-import { ipcMain, webContents } from 'electron';
+import os from 'os';
+import fs from 'fs';
+import { join } from 'path';
+import { BrowserWindow, ipcMain, screen } from 'electron';
 import {
+  SyphonOpenGLServer,
   SyphonServerDescription,
   SyphonServerDescriptionUUIDKey,
-  SyphonServerDirectory,
-  SyphonServerDirectoryListenerChannel,
 } from 'node-syphon';
 import { ElectronSyphonDirectory } from './modules/electron-syphon.directory';
 import { ElectronSyphonGLClient } from './modules/electron-syphon.gl-client';
@@ -38,6 +40,67 @@ export const closeSyphon = () => {
   if (metalServer) {
     metalServer.dispose();
   }
+};
+
+// https://stackoverflow.com/questions/55994212/how-use-the-returned-buffer-of-electronjs-function-getnativewindowhandle-i
+function getNativeWindowHandle_Int(win) {
+  let hbuf = win.getNativeWindowHandle();
+
+  if (os.endianness() == 'LE') {
+    console.log('ENDIAN LE');
+    return hbuf.readInt32LE();
+  } else {
+    console.log('ENDIAN BE');
+    return hbuf.readInt32BE();
+  }
+}
+
+export const createTextureServer = () => {
+  const win = new BrowserWindow({
+    width: 1920 / screen.getPrimaryDisplay().scaleFactor,
+    height: 1080 / screen.getPrimaryDisplay().scaleFactor,
+    show: false,
+    frame: false,
+    titleBarStyle: 'hidden',
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false,
+      contextIsolation: false,
+      backgroundThrottling: false,
+      offscreen: {
+        useSharedTexture: true,
+      },
+    },
+  });
+
+  win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/offscreen-server`);
+  // const textureServer = new ElectronSyphonGLServer('Handle');
+  const server = new SyphonOpenGLServer('Handle');
+  win.webContents.on('paint', (event: any, _size: any, _image) => {
+    const tex = event.texture;
+    if (tex) {
+      const handle = tex.textureInfo.sharedTextureHandle;
+
+      // FIXME: Buffer is cloned and can't access IOSurfaceRef.
+      /*
+      textureServer.publishSurfaceHandle({
+        texture: handle,
+        width: tex.textureInfo.codedSize.width,
+        height: tex.textureInfo.codedSize.height,
+      });
+      */
+
+      server.publishSurfaceHandle(
+        handle,
+        'GL_TEXTURE_RECTANGLE_EXT',
+        tex.textureInfo.visibleRect,
+        tex.textureInfo.codedSize,
+        true,
+      );
+
+      tex.release();
+    }
+  });
 };
 
 const setupDirectory = () => {
