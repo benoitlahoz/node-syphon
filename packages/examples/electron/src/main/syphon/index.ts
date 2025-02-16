@@ -1,5 +1,5 @@
-import os from 'os';
-import fs from 'fs';
+// import os from 'os';
+// import fs from 'fs';
 import { join } from 'path';
 import { BrowserWindow, ipcMain, screen } from 'electron';
 import {
@@ -8,41 +8,77 @@ import {
   SyphonServerDescriptionUUIDKey,
 } from 'node-syphon';
 import { ElectronSyphonDirectory } from './modules/electron-syphon.directory';
-import { ElectronSyphonGLClient } from './modules/electron-syphon.gl-client';
-import { ElectronSyphonGLServer } from './modules/electron-syphon.gl-server';
-import { ElectronSyphonMetalServer } from './modules/electron-syphon.metal-server';
-import { ElectronSyphonMetalClient } from './modules/electron-syphon.metal-client';
+import { ElectronSyphonGLClient } from './modules/opengl-data/electron-syphon.gl-client';
+import { ElectronSyphonGLServer } from './modules/opengl-data/electron-syphon.gl-server';
+import { ElectronSyphonMetalServer } from './modules/metal-data/electron-syphon.metal-server';
+import { ElectronSyphonMetalClient } from './modules/metal-data/electron-syphon.metal-client';
 
 let directory: ElectronSyphonDirectory;
 
-let glClient: ElectronSyphonGLClient | null;
-let glServer: ElectronSyphonGLServer | null;
+let glDataClient: ElectronSyphonGLClient | null;
+let glDataServer: ElectronSyphonGLServer | null;
+let metalDataClient: ElectronSyphonMetalClient | null;
+let metalDataServer: ElectronSyphonMetalServer | null;
 
-let metalClient: ElectronSyphonMetalClient | null;
-let metalServer: ElectronSyphonMetalServer | null;
+let offscreenWindow: BrowserWindow | null;
+let offscreenServer: SyphonOpenGLServer | null;
 
 export const bootstrapSyphon = () => {
   setupDirectory();
 };
 
-export const closeSyphon = () => {
-  directory.dispose();
+export const closeSyphon = (closeDirectory = true) => {
+  if (closeDirectory) directory.dispose();
 
-  if (glClient) {
-    glClient.dispose();
+  closeGLDataClient();
+  closeGLDataServer();
+  closeMetalDataClient();
+  closeMetalDataServer();
+  closeOffscreenServer();
+};
+
+export const closeGLDataClient = () => {
+  if (glDataClient) {
+    glDataClient.dispose();
+    glDataClient = null;
   }
-  if (metalClient) {
-    metalClient.dispose();
+};
+
+export const closeGLDataServer = () => {
+  if (glDataServer) {
+    glDataServer.dispose();
+    glDataServer = null;
   }
-  if (glServer) {
-    glServer.dispose();
+};
+
+export const closeMetalDataClient = () => {
+  if (metalDataClient) {
+    metalDataClient.dispose();
+    metalDataClient = null;
   }
-  if (metalServer) {
-    metalServer.dispose();
+};
+
+export const closeMetalDataServer = () => {
+  if (metalDataServer) {
+    metalDataServer.dispose();
+    metalDataServer = null;
+  }
+};
+
+export const closeOffscreenServer = () => {
+  if (offscreenServer) {
+    offscreenServer.dispose();
+    offscreenServer = null;
+  }
+
+  if (offscreenWindow) {
+    offscreenWindow.close();
+    offscreenWindow = null;
   }
 };
 
 // https://stackoverflow.com/questions/55994212/how-use-the-returned-buffer-of-electronjs-function-getnativewindowhandle-i
+/*
 function getNativeWindowHandle_Int(win) {
   let hbuf = win.getNativeWindowHandle();
 
@@ -54,9 +90,9 @@ function getNativeWindowHandle_Int(win) {
     return hbuf.readInt32BE();
   }
 }
-
+*/
 export const createTextureServer = () => {
-  const win = new BrowserWindow({
+  offscreenWindow = new BrowserWindow({
     width: 1920 / screen.getPrimaryDisplay().scaleFactor,
     height: 1080 / screen.getPrimaryDisplay().scaleFactor,
     show: false,
@@ -73,12 +109,12 @@ export const createTextureServer = () => {
     },
   });
 
-  win.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/offscreen-server`);
+  offscreenWindow.loadURL(`${process.env['ELECTRON_RENDERER_URL']}/offscreen-server`);
   // const textureServer = new ElectronSyphonGLServer('Handle');
-  const server = new SyphonOpenGLServer('Handle');
-  win.webContents.on('paint', (event: any, _size: any, _image) => {
+  offscreenServer = new SyphonOpenGLServer('Handle');
+  offscreenWindow.webContents.on('paint', (event: any, _size: any, _image) => {
     const tex = event.texture;
-    if (tex) {
+    if (offscreenServer && tex) {
       const handle = tex.textureInfo.sharedTextureHandle;
 
       // FIXME: Buffer is cloned and can't access IOSurfaceRef.
@@ -90,7 +126,7 @@ export const createTextureServer = () => {
       });
       */
 
-      server.publishSurfaceHandle(
+      offscreenServer.publishSurfaceHandle(
         handle,
         'GL_TEXTURE_RECTANGLE_EXT',
         tex.textureInfo.visibleRect,
@@ -129,28 +165,28 @@ const setupDirectory = () => {
         // FIXME: Not disposed correctly when switching from renderer. Frames are still flowing.
 
         case 'gl': {
-          if (metalClient) {
-            metalClient.dispose();
-            metalClient = null;
+          if (metalDataClient) {
+            metalDataClient.dispose();
+            metalDataClient = null;
           }
 
-          if (!glClient) {
-            glClient = new ElectronSyphonGLClient();
+          if (!glDataClient) {
+            glDataClient = new ElectronSyphonGLClient();
           }
-          glClient.connect(server);
+          glDataClient.connect(server);
           break;
         }
         case 'metal': {
-          if (glClient) {
+          if (glDataClient) {
             console.log('Will dispose GL, switching to metal');
-            glClient.dispose();
-            glClient = null;
+            glDataClient.dispose();
+            glDataClient = null;
           }
 
-          if (!metalClient) {
-            metalClient = new ElectronSyphonMetalClient();
+          if (!metalDataClient) {
+            metalDataClient = new ElectronSyphonMetalClient();
           }
-          metalClient.connect(server);
+          metalDataClient.connect(server);
           break;
         }
       }
@@ -161,26 +197,26 @@ const setupDirectory = () => {
 
   // Client will pull the frame at its own pace (requestAnimationFrame).
   ipcMain.handle('get-frame', (_event: Electron.IpcMainInvokeEvent, uuid: string) => {
-    if (!glClient && !metalClient) {
+    if (!glDataClient && !metalDataClient) {
       return new Error(`Trying to get a frame from a client that is not connected.`);
     }
 
-    if (glClient) {
-      if (glClient.serverUUID !== uuid) {
+    if (glDataClient) {
+      if (glDataClient.serverUUID !== uuid) {
         return new Error(
           `Connected server is not the same as the one from which a frame is requested.`,
         );
       }
 
-      return glClient.frame;
-    } else if (metalClient) {
-      if (metalClient.serverUUID !== uuid) {
+      return glDataClient.frame;
+    } else if (metalDataClient) {
+      if (metalDataClient.serverUUID !== uuid) {
         return new Error(
           `Connected server is not the same as the one from which a frame is requested.`,
         );
       }
 
-      return metalClient.frame;
+      return metalDataClient.frame;
     }
 
     return;
@@ -188,17 +224,24 @@ const setupDirectory = () => {
 
   ipcMain.handle(
     'create-server',
-    (_event: Electron.IpcMainInvokeEvent, name: string, type: 'metal' | 'gl') => {
+    (_event: Electron.IpcMainInvokeEvent, name: string, type: 'metal' | 'gl' | 'osr') => {
       switch (type) {
         case 'gl': {
-          if (!glServer) {
-            glServer = new ElectronSyphonGLServer(name);
+          if (!glDataServer) {
+            glDataServer = new ElectronSyphonGLServer(name);
           }
           break;
         }
         case 'metal': {
-          if (!metalServer) {
-            metalServer = new ElectronSyphonMetalServer(name);
+          if (!metalDataServer) {
+            metalDataServer = new ElectronSyphonMetalServer(name);
+          }
+          break;
+        }
+        case 'osr': {
+          if (!offscreenServer) {
+            console.log('TEXXXX');
+            createTextureServer();
           }
           break;
         }
@@ -214,7 +257,7 @@ const setupDirectory = () => {
       _event: Electron.IpcMainInvokeEvent,
       frame: { data: Uint8ClampedArray; width: number; height: number },
     ) => {
-      glServer!.publishImageData(frame);
+      glDataServer!.publishImageData(frame);
       return true;
     },
   );
@@ -225,7 +268,7 @@ const setupDirectory = () => {
       _event: Electron.IpcMainInvokeEvent,
       frame: { data: Uint8ClampedArray; width: number; height: number },
     ) => {
-      metalServer!.publishImageData(frame);
+      metalDataServer!.publishImageData(frame);
       return true;
     },
   );

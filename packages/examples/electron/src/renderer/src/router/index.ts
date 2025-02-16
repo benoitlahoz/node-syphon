@@ -4,23 +4,31 @@ const routes = [
   {
     path: '/',
     alias: '/index.html',
-    component: () => import('@/components/windows/SimpleGLClient.vue'),
+    component: () => import('@/components/windows/shared/WebGPUClient.vue'),
+  },
+  {
+    path: '/gl-client',
+    component: () => import('@/components/windows/data/SimpleGLClient.vue'),
   },
   {
     path: '/gl-server',
-    component: () => import('@/components/windows/SimpleGLServer.vue'),
+    component: () => import('@/components/windows/data/SimpleGLServer.vue'),
   },
   {
     path: '/metal-client',
-    component: () => import('@/components/windows/SimpleMetalClient.vue'),
+    component: () => import('@/components/windows/data/SimpleMetalClient.vue'),
   },
   {
     path: '/metal-server',
-    component: () => import('@/components/windows/SimpleMetalServer.vue'),
+    component: () => import('@/components/windows/data/SimpleMetalServer.vue'),
+  },
+  {
+    path: '/onscreen-server',
+    component: () => import('@/components/windows/shared/OnscreenGLServer.vue'),
   },
   {
     path: '/offscreen-server',
-    component: () => import('@/components/windows/OffscreenGLServer.vue'),
+    component: () => import('@/components/windows/shared/OffscreenGLServer.vue'),
   },
 ];
 

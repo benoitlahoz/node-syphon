@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { Worker } from 'worker_threads';
-import SyphonServerWorkerURL from './workers/metal-server.worker?worker&url';
+import SyphonServerWorkerURL from './metal-server.worker?worker&url';
 
 export class ElectronSyphonMetalServer {
   private worker: any;

@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { Worker } from 'worker_threads';
 import { SyphonFrameData, SyphonServerDescription } from 'node-syphon';
 import type { SyphonClientFrameDTO } from '@/types';
-import SyphonClientWorkerURL from './workers/gl-client.worker?worker&url';
+import SyphonClientWorkerURL from './gl-client.worker?worker&url';
 
 export class ElectronSyphonGLClient {
   private worker: any;

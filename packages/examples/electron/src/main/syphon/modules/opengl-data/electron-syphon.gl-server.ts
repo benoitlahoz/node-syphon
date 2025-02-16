@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { Worker } from 'worker_threads';
-import SyphonServerWorkerURL from './workers/gl-server.worker?worker&url';
+import SyphonServerWorkerURL from './gl-server.worker?worker&url';
 
 export class ElectronSyphonGLServer {
   private worker: any;

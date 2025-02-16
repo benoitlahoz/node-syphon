@@ -1,22 +1,10 @@
-import os from 'os';
-import { app, shell, BrowserWindow, ipcMain } from 'electron';
+import { app, shell, BrowserWindow, ipcMain, Menu, MenuItem } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
 import { bootstrapSyphon, closeSyphon, createTextureServer } from './syphon';
 
-// https://stackoverflow.com/questions/55994212/how-use-the-returned-buffer-of-electronjs-function-getnativewindowhandle-i
-function getNativeWindowHandle_Int(win) {
-  let hbuf = win.getNativeWindowHandle();
-
-  if (os.endianness() == 'LE') {
-    console.log('ENDIAN LE');
-    return hbuf.readInt32LE();
-  } else {
-    console.log('ENDIAN BE');
-    return hbuf.readInt32BE();
-  }
-}
+app.commandLine.appendSwitch('enable-unsafe-webgpu');
 
 // @ts-ignore Value never read.
 let clientWindow: BrowserWindow;
@@ -31,7 +19,7 @@ function createWindow(route: string): BrowserWindow {
     show: false,
     frame: false,
     titleBarStyle: 'hidden',
-    autoHideMenuBar: true,
+    autoHideMenuBar: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     trafficLightPosition: { x: 9, y: 10 },
     webPreferences: {
@@ -42,8 +30,11 @@ function createWindow(route: string): BrowserWindow {
   });
 
   win.on('ready-to-show', () => {
-    console.log('Window handle', getNativeWindowHandle_Int(win));
     win.show();
+  });
+
+  win.on('close', () => {
+    closeSyphon(false);
   });
 
   win.webContents.setWindowOpenHandler((details) => {
@@ -62,7 +53,7 @@ function createWindow(route: string): BrowserWindow {
 
 app.whenReady().then(() => {
   process.on('SIGINT', () => {
-    // Handle Cmd+C in dev mode.
+    // Handle Ctrl+C in dev mode.
     app.quit();
   });
 
@@ -75,9 +66,11 @@ app.whenReady().then(() => {
   bootstrapSyphon();
 
   // Listen to 'open server window'.
-  ipcMain.on('open-server', (_, type: 'gl' | 'metal') => {
+  ipcMain.on('open-server', (_, type: 'gl' | 'metal' | 'osr') => {
     if (!serverWindow || serverWindow.isDestroyed()) {
-      serverWindow = createWindow(type === 'gl' ? '/gl-server' : '/metal-server');
+      serverWindow = createWindow(
+        type === 'gl' ? '/gl-server' : type === 'osr' ? '/onscreen-server' : '/metal-server',
+      );
       const pos = serverWindow.getPosition();
       serverWindow.setPosition(pos[0] - 50, pos[1] - 50);
     }
@@ -85,8 +78,88 @@ app.whenReady().then(() => {
 
   clientWindow = createWindow('/');
 
-  // FIXME: Test for native handle.
-  createTextureServer();
+  const menu = Menu.getApplicationMenu();
+
+  if (menu) {
+    let checked = 'opengl-shared';
+
+    const implGLData = {
+      label: 'OpenGL (shared)',
+      id: 'opengl-shared',
+      type: 'radio' as any,
+      checked: true,
+      accelerator: 'CmdOrCtrl+Shift+G',
+      click(item: MenuItem) {
+        if (checked !== item.id) {
+          if (serverWindow) serverWindow.close();
+          if (clientWindow) clientWindow.close();
+
+          clientWindow = createWindow('/');
+          checked = item.id;
+        }
+        /*
+        if (item.checked) {
+          const glShared = Menu.getApplicationMenu()!.getMenuItemById('opengl-shared');
+          const metalData = Menu.getApplicationMenu()!.getMenuItemById('metal-data');
+          glShared!.checked = false;
+          metalData!.checked = false;
+
+          if (serverWindow) serverWindow.close();
+          if (clientWindow) clientWindow.close();
+
+          clientWindow = createWindow('/');
+          
+        }
+          */
+      },
+    };
+
+    const implGLShared = {
+      label: 'OpenGL (data)',
+      id: 'opengl-data',
+      type: 'radio' as any,
+      checked: false,
+      accelerator: 'CmdOrCtrl+Shift+O',
+      click(item: MenuItem) {
+        if (checked !== item.id) {
+          if (serverWindow) serverWindow.close();
+          if (clientWindow) clientWindow.close();
+
+          clientWindow = createWindow('/gl-client');
+          checked = item.id;
+        }
+      },
+    };
+
+    const implMetalData = {
+      label: 'Metal (data)',
+      id: 'metal-data',
+      type: 'radio' as any,
+      checked: false,
+      accelerator: 'CmdOrCtrl+Shift+M',
+      click(item: MenuItem) {
+        if (checked !== item.id) {
+          if (serverWindow) serverWindow.close();
+          if (clientWindow) clientWindow.close();
+
+          clientWindow = createWindow('/metal-client');
+          checked = item.id;
+        }
+      },
+    };
+
+    menu.append(
+      new MenuItem({
+        label: 'Implementations',
+        submenu: [implGLData, implGLShared, implMetalData],
+      }),
+    );
+
+    Menu.setApplicationMenu(menu);
+  }
+
+  // TODO: Create windows implementations.
+  // createTextureServer();
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) clientWindow = createWindow('/');

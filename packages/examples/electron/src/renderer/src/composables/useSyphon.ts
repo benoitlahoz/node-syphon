@@ -65,7 +65,7 @@ export const useSyphon = () => {
     return serverOrError;
   };
 
-  const createServer = async (name: string, type: 'gl' | 'metal'): Promise<boolean> => {
+  const createServer = async (name: string, type: 'gl' | 'metal' | 'osr'): Promise<boolean> => {
     const res = await ipcInvoke('create-server', name, type);
     return res;
   };

@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: 'SimpleMetalServer',
+  name: 'SimpleGLServer',
 };
 </script>
 
@@ -8,15 +8,15 @@ export default {
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useSyphon } from '@/composables/useSyphon';
 
-import { ThreeExampleHelpers } from '../../three/three-example-helpers';
+import { ThreeExampleHelpers } from '../../../three/three-example-helpers';
 
-const { createServer, publishFrameMetal } = useSyphon();
+const { createServer, publishFrameGL } = useSyphon();
 
 const canvasRef = ref<HTMLCanvasElement | undefined>();
 let example: ThreeExampleHelpers;
 
 onMounted(async () => {
-  await createServer('ThreeJS Metal', 'metal');
+  await createServer('ThreeJS OpenGL', 'gl');
 
   const canvas: HTMLCanvasElement | undefined = canvasRef.value;
   if (!canvas) {
@@ -25,7 +25,7 @@ onMounted(async () => {
 
   example = new ThreeExampleHelpers(canvas);
   example.ondraw = async (frame: { data: Uint8ClampedArray; width: number; height: number }) => {
-    await publishFrameMetal(frame);
+    await publishFrameGL(frame);
   };
 });
 
@@ -38,7 +38,7 @@ onBeforeUnmount(() => {
 <template lang="pug">
 .w-full.h-full.flex.flex-col.text-sm
   .bg-background-dark
-    .titlebar.w-full.font-semibold Electron Simple Server (Metal - IPC data)
+    .titlebar.w-full.font-semibold Electron Simple Server (OpenGL - data)
   .bg-background.w-full.flex-1.flex.flex-col
     .w-full.flex.flex-1.bg-black.overflow-hidden
       canvas(

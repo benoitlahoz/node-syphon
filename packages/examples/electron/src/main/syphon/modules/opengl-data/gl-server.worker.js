@@ -33,11 +33,9 @@ parentPort.on('message', async (message) => {
 
     case 'publish-surface': {
       const frame = message.frame;
-      // FIXME: Conversion doesn't work.
       const buffer = Buffer.from(frame.texture);
-      // console.log('TEX', frame.texture);
-      console.log('BUF', buffer, frame);
 
+      // FIXME: Doesn't work, we may be losing data from the original handle.
       server.publishSurfaceHandle(
         // https://github.com/nodejs/node/issues/27266
         buffer,
