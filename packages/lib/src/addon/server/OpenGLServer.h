@@ -8,6 +8,7 @@
 #include <Cocoa/Cocoa.h>
 #include <OpenGL/OpenGL.h>
 #include <Syphon/Syphon.h>
+#include <IOSurface/IOSurface.h>
 
 // Macros.
 
@@ -30,7 +31,7 @@ namespace syphon
     void Dispose(const Napi::CallbackInfo &info);
 
     void PublishImageData(const Napi::CallbackInfo &info);
-    // void PublishFrameTexture(const Napi::CallbackInfo &info);
+    void PublishSurfacehandle(const Napi::CallbackInfo &info);
 
     Napi::Value GetName(const Napi::CallbackInfo &info);
     Napi::Value GetServerDescription(const Napi::CallbackInfo &info);

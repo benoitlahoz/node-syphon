@@ -3,7 +3,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
-import { bootstrapSyphon, closeSyphon } from './syphon';
+import { bootstrapSyphon, closeSyphon, createTextureServer } from './syphon';
 
 // https://stackoverflow.com/questions/55994212/how-use-the-returned-buffer-of-electronjs-function-getnativewindowhandle-i
 function getNativeWindowHandle_Int(win) {
@@ -84,6 +84,9 @@ app.whenReady().then(() => {
   });
 
   clientWindow = createWindow('/');
+
+  // FIXME: Test for native handle.
+  createTextureServer();
 
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) clientWindow = createWindow('/');

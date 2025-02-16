@@ -98,7 +98,7 @@ void OpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
   CGLSetCurrentContext([m_server context]);
 
   CGLLockContext(CGLGetCurrentContext());
-  glGenTextures(1,& m_texture);  
+  glGenTextures(1, & m_texture);  
 
   OpenGLHelper::Uint8ToTexture(
     texture_target, 
@@ -117,6 +117,136 @@ void OpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
 
   glDeleteTextures(1, &m_texture);
   CGLSetCurrentContext(NULL);
+}
+
+void OpenGLServerWrapper::PublishSurfacehandle(const Napi::CallbackInfo& info)
+{
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  // Only test the parameters on first call: we suppose that the function will be called 
+  // with same parameters, so we can avoid checking at each new frame.
+
+  if (!m_first_check_passed) {
+    if (info.Length() != 5) {
+      Napi::TypeError::New(env, "Invalid number of parameters for 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+    }
+    
+    if (!IS_BUFFER(info[0])) {
+      Napi::TypeError::New(env, "1st parameter (texture) must be a Buffer in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+    }
+
+    if (!IS_TEXTURE_TARGET(info[1])) {
+      Napi::TypeError::New(env, "2nd parameter (texture_target) must be a string containing GL_TEXTURE_RECTANGLE_EXT or GL_TEXTURE_2D in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+    }
+
+    if (!IS_RECT(info[2])) {
+      Napi::TypeError::New(env, "3rd parameter (imageRegion) must be a rectangle in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+    }
+
+    if (!IS_SIZE(info[3])) {
+      Napi::TypeError::New(env, "4th parameter (textureDimension) must be a size in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+    }
+
+    if (!info[4].IsBoolean()) {
+      Napi::TypeError::New(env, "5th parameter (flipped) must be a boolean in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+    }
+
+    m_first_check_passed = true;
+  }
+
+  // TODO: In a Promise (sequential?), since we can't use a worker on JS side (handle buffer is cloned).
+
+  std::string targetString = info[1].As<Napi::String>().Utf8Value();
+  GLenum texture_target = targetString == "GL_TEXTURE_RECTANGLE_EXT" ? GL_TEXTURE_RECTANGLE_EXT : GL_TEXTURE_2D;
+
+  Napi::Object region = info[2].As<Napi::Object>();
+  NSRect imageRegion = NSMakeRect(region.Get("x").ToNumber().FloatValue(), region.Get("y").ToNumber().FloatValue(), region.Get("width").ToNumber().FloatValue(), region.Get("height").ToNumber().FloatValue());
+
+  Napi::Object size = info[3].As<Napi::Object>();
+  NSSize texture_size = NSMakeSize(size.Get("width").ToNumber().FloatValue(), size.Get("height").ToNumber().FloatValue());
+
+  BOOL flipped = info[4].As<Napi::Boolean>().Value() == true ? YES : NO;
+
+  auto buffer = info[0].As<Napi::Buffer<void**>>();
+
+  IOSurfaceRef io_surface = *reinterpret_cast<IOSurfaceRef*>(buffer.Data());
+  GLsizei width = (GLsizei)IOSurfaceGetWidth(io_surface);
+  GLsizei height = (GLsizei)IOSurfaceGetHeight(io_surface);
+
+  CGLSetCurrentContext([m_server context]);
+  CGLLockContext(CGLGetCurrentContext());
+
+  glGenTextures(1, &m_texture);
+  glEnable(GL_TEXTURE_RECTANGLE_ARB);
+  glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_texture);
+
+  CGLTexImageIOSurface2D(CGLGetCurrentContext(), GL_TEXTURE_RECTANGLE_ARB, GL_RGBA8, width,
+                          height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
+                          io_surface, 0);
+
+  glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+  
+  [m_server publishFrameTexture: m_texture 
+                  textureTarget: texture_target 
+                    imageRegion: imageRegion 
+              textureDimensions: texture_size 
+                        flipped: flipped
+  ];
+
+  glDeleteTextures(1, &m_texture);
+  CGLUnlockContext(CGLGetCurrentContext());
+  CGLSetCurrentContext(NULL);
+
+  /*
+  // TODO: Add to helpers.
+  CGLError cglError =
+  CGLTexImageIOSurface2D(CGLGetCurrentContext(), GL_TEXTURE_RECTANGLE_EXT, GL_RGBA, (GLsizei)surface_w, (GLsizei)surface_h, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, surface, 0);
+  if (cglError != kCGLNoError) {
+    if (cglError == kCGLBadAttribute) {
+      printf("Bad attribute.\n");
+    } else if (cglError == kCGLBadProperty) {
+      printf("Bad prop.\n");
+    } else if (cglError == kCGLBadPixelFormat) {
+      printf("Bad pixel.\n");
+    } else if (cglError == kCGLBadRendererInfo) {
+      printf("Bad renderer.\n");
+    } else if (cglError == kCGLBadContext) {
+      printf("Bad context.\n");
+    } else if (cglError == kCGLBadDrawable) {
+      printf("Bad drawable.\n");
+    } else if (cglError == kCGLBadDisplay) {
+      printf("Bad display.\n");
+    } else if (cglError == kCGLBadState) {
+      printf("Bad state.\n");
+    } else if (cglError == kCGLBadValue) {
+      printf("Bad value.\n");
+    } else if (cglError == kCGLBadMatch) {
+      printf("Bad match.\n");
+    } else if (cglError == kCGLBadEnumeration) {
+      printf("Bad enum.\n");
+    } else if (cglError == kCGLBadOffScreen) {
+      printf("Bad offscreen.\n");
+    } else if (cglError == kCGLBadFullScreen) {
+      printf("Bad fullscreen.\n");
+    } else if (cglError == kCGLBadWindow) {
+      printf("Bad window.\n");
+    } else if (cglError == kCGLBadAddress) {
+      printf("Bad address.\n");
+    } else if (cglError == kCGLBadCodeModule) {
+      printf("Bad code module.\n");
+    } else if (cglError == kCGLBadAlloc) {
+      printf("Bad alloc.\n");
+    } else if (cglError == kCGLBadConnection) {
+      printf("Bad connection.\n");
+    }
+  }
+  */
+  
+  // TODO: For client see 'Direct surface publishing' here:
+  // https://github.com/Syphon/Syphon-Framework/pull/96
 }
 
 Napi::Value OpenGLServerWrapper::GetName(const Napi::CallbackInfo &info) 
@@ -150,7 +280,7 @@ Napi::Object OpenGLServerWrapper::Init(Napi::Env env, Napi::Object exports)
     // Methods.
 
     InstanceMethod("publishImageData", &OpenGLServerWrapper::PublishImageData),
-    // InstanceMethod("publishFrameTexture", &OpenGLServerWrapper::PublishFrameTexture),
+    InstanceMethod("publishSurfaceHandle", &OpenGLServerWrapper::PublishSurfacehandle),
     InstanceMethod("dispose", &OpenGLServerWrapper::Dispose),
 
     InstanceAccessor("name", &OpenGLServerWrapper::GetName, nullptr, napi_enumerable),

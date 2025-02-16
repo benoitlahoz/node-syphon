@@ -14,8 +14,8 @@ yarn add node-syphon
 
 This the monorepo `README`.
 
-See library's [README.md](https://github.com/benoitlahoz/node-syphon/tree/main/packages/lib).
-See [examples](https://github.com/benoitlahoz/node-syphon/tree/main/packages/examples).
+- See library's [README.md](https://github.com/benoitlahoz/node-syphon/tree/main/packages/lib).
+- See [examples](https://github.com/benoitlahoz/node-syphon/tree/main/packages/examples).
 
 ## Build
 

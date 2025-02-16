@@ -149,6 +149,7 @@ As of v0.6.1, the `electron` **client** example getting a **1920x1080** image fr
 
 ## TODO
 
-- Flip texture vertically in the addon (with Accelerate.framework?).
-- Test the server description NSImage->Napi::Buffer.
-- Explore new Electron's [`sharedTexture`](https://www.electronjs.org/docs/latest/api/structures/offscreen-shared-texture) to avoid copying pixels.
+[x] Flip texture vertically in the addon (with Accelerate.framework?).
+[ ] Test on Apple Silicon.
+[ ] Test the server description NSImage->Napi::Buffer.
+[x] Explore new Electron's [`sharedTexture`](https://www.electronjs.org/docs/latest/api/structures/offscreen-shared-texture) to avoid copying pixels.

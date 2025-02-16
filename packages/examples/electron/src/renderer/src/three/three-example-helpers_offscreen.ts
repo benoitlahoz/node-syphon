@@ -8,7 +8,7 @@ import { VertexTangentsHelper } from 'three/addons/helpers/VertexTangentsHelper.
 import LeePerrySmith from '@/assets/models/LeePerrySmith/LeePerrySmith.glb?url';
 
 // https://threejs.org/examples/#webgl_helpers
-export class ThreeExampleHelpers {
+export class ThreeExampleHelpersOffscreen {
   private stats = new Stats();
   private offscreenCanvas;
   private ctx;
@@ -39,7 +39,7 @@ export class ThreeExampleHelpers {
     this.renderer = new THREE.WebGLRenderer({ canvas });
     // renderer.setPixelRatio(window.devicePixelRatio); // FIXME: With real ratio (x2 in case of kind-of-retina-display) 1600x1200 are falling to 16fps.
 
-    const height = window.innerHeight - 34;
+    const height = window.innerHeight;
     this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / height, 1, 1000);
     this.camera.position.z = 400;
 
@@ -170,7 +170,7 @@ export class ThreeExampleHelpers {
   }
 
   private onWindowResize() {
-    const height = window.innerHeight - 34;
+    const height = window.innerHeight;
     this.camera.aspect = window.innerWidth / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, height);
@@ -178,7 +178,7 @@ export class ThreeExampleHelpers {
     this.offscreenCanvas.width = this.canvas.width;
     this.offscreenCanvas.height = this.canvas.height;
 
-    this.stats.dom.style.top = '40px';
+    this.stats.dom.style.top = '6px';
     this.stats.dom.style.left = '6px';
   }
 }
