@@ -1,22 +1,29 @@
 <script lang="ts">
 export default {
-  name: 'SimpleGLServer',
+  name: 'SimpleGLDataServer',
 };
 </script>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import type { SyphonServerDescription } from 'node-syphon/universal';
+import { SyphonServerDescriptionNameKey } from 'node-syphon/universal';
 import { useSyphon } from '@/composables/useSyphon';
 
 import { ThreeExampleHelpers } from '../../../three/three-example-helpers';
 
-const { createServer, publishFrameGL } = useSyphon();
+const { OpenGL } = useSyphon();
 
 const canvasRef = ref<HTMLCanvasElement | undefined>();
 let example: ThreeExampleHelpers;
+const server = ref<SyphonServerDescription | undefined>();
 
 onMounted(async () => {
-  await createServer('ThreeJS OpenGL', 'gl');
+  const serverOrError = await OpenGL.createDataServer('ThreeJS OpenGL');
+  if (serverOrError instanceof Error) {
+    throw serverOrError;
+  }
+  server.value = serverOrError;
 
   const canvas: HTMLCanvasElement | undefined = canvasRef.value;
   if (!canvas) {
@@ -25,13 +32,18 @@ onMounted(async () => {
 
   example = new ThreeExampleHelpers(canvas);
   example.ondraw = async (frame: { data: Uint8ClampedArray; width: number; height: number }) => {
-    await publishFrameGL(frame);
+    await OpenGL.publishData({
+      server: server.value![SyphonServerDescriptionNameKey],
+      ...frame,
+    });
   };
 });
 
 onBeforeUnmount(() => {
   if (example) example.dispose();
-  // TODO: Destroy server.
+  if (server.value) {
+    OpenGL.destroyDataServer(server.value[SyphonServerDescriptionNameKey]);
+  }
 });
 </script>
 

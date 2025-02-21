@@ -13,6 +13,11 @@ parentPort.on('message', async (message) => {
 
       server = new SyphonOpenGLServer(message.name);
 
+      parentPort.postMessage({
+        type: 'server-description',
+        data: server.description,
+      });
+
       break;
     }
 

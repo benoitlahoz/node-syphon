@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: 'SimpleGLClient',
+  name: 'SimpleMetalDataClient',
 };
 </script>
 
@@ -12,7 +12,7 @@ import {
   SyphonServerDescriptionAppNameKey,
   SyphonServerDescriptionUUIDKey,
 } from 'node-syphon/universal';
-
+import { MetalDataChannels } from '@/common/channels';
 import { useSyphon } from '@/composables/useSyphon';
 
 import {
@@ -37,7 +37,7 @@ const width = ref(0);
 const height = ref(0);
 
 const onChange = async (uuid: string) => {
-  serverDescription.value = serverByUUID(uuid);
+  serverDescription.value = await serverByUUID(uuid);
 };
 
 const onFpsChange = (value: number) => {
@@ -50,7 +50,7 @@ const onResize = (value: { width: number; height: number }) => {
 };
 
 const openSimpleServer = () => {
-  ipcSend('open-server', 'metal');
+  ipcSend(MetalDataChannels.OpenServerWindow);
 };
 </script>
 

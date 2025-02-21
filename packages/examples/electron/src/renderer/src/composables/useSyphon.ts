@@ -1,97 +1,144 @@
+import type { IpcRendererEvent } from 'electron';
 import {
   SyphonServerDirectoryListenerChannel,
   SyphonServerDescription,
-  SyphonServerDescriptionAppNameKey,
-  SyphonServerDescriptionNameKey,
   SyphonServerDescriptionUUIDKey,
+  SyphonFrameData,
 } from 'node-syphon/universal';
-import { onBeforeMount, ref } from 'vue';
+import { onBeforeMount, onBeforeUnmount, ref } from 'vue';
+import { MetalDataChannels, OpenGLDataChannels, ServerDirectoryChannels } from '@/common/channels';
+
+const ipcOn = window.electron.ipcRenderer.on;
+const ipcInvoke = window.electron.ipcRenderer.invoke;
+const ipcRemove = window.electron.ipcRenderer.removeAllListeners;
 
 export const useSyphon = () => {
-  const ipcOn = window.electron.ipcRenderer.on;
-  const ipcInvoke = window.electron.ipcRenderer.invoke;
-
   const servers = ref<SyphonServerDescription[]>([]);
 
-  onBeforeMount(async () => {
-    // Get already running servers.
-
-    servers.value = await ipcInvoke('get-servers');
-
-    // Subcribe to announcing servers.
-
-    ipcOn(
-      SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
-      (_, payload: { message: SyphonServerDescription; servers: SyphonServerDescription[] }) => {
-        console.log(
-          `Server with name '${payload.message[SyphonServerDescriptionAppNameKey]}${payload.message[SyphonServerDescriptionNameKey] ? ` - ${payload.message[SyphonServerDescriptionNameKey]}` : ''}' connected.`,
-        );
-        servers.value = payload.servers;
-      },
-    );
-
-    // Subcribe to retiring servers.
-
-    ipcOn(
-      SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification,
-      (_, payload: { message: SyphonServerDescription; servers: SyphonServerDescription[] }) => {
-        console.log(
-          `Server with name '${payload.message[SyphonServerDescriptionAppNameKey]}' disconnected.`,
-        );
-        servers.value = payload.servers;
-      },
-    );
-  });
-
-  const serverByUUID = (uuid: string) => {
+  const serverByUUID = async (uuid: string) => {
+    // Update existing servers.
+    servers.value = await ipcInvoke(ServerDirectoryChannels.GetServers);
     return servers.value.find(
       (desc: SyphonServerDescription) => desc[SyphonServerDescriptionUUIDKey] === uuid,
     );
   };
 
-  const connectToServer = async (
+  // ------------------------------------------------ //
+  // --------------------- OpenGL ------------------- //
+  // ------------------------------------------------ //
+
+  const connectOpenGLDataServer = async (
     uuid: string,
-    type: 'gl' | 'metal',
   ): Promise<SyphonServerDescription | Error> => {
     // Update existing servers.
-    servers.value = await ipcInvoke('get-servers');
-
-    // Try to connect to server.
-    const serverOrError: SyphonServerDescription | Error = await ipcInvoke(
-      'connect-server',
-      uuid,
-      type,
-    );
-    return serverOrError;
+    servers.value = await ipcInvoke(ServerDirectoryChannels.GetServers);
+    return await ipcInvoke(OpenGLDataChannels.ConnectServer, uuid);
   };
 
-  const createServer = async (name: string, type: 'gl' | 'metal' | 'osr'): Promise<boolean> => {
-    const res = await ipcInvoke('create-server', name, type);
-    return res;
+  const createOpenGLDataServer = async (name: string): Promise<Error | SyphonServerDescription> => {
+    return await ipcInvoke(OpenGLDataChannels.CreateServer, name);
   };
 
-  const publishFrameGL = async (frame: {
+  const destroyOpenGLDataServer = async (
+    name: string,
+  ): Promise<Error | SyphonServerDescription> => {
+    return await ipcInvoke(OpenGLDataChannels.DestroyServer, name);
+  };
+
+  const publishOpenGLData = async (frame: {
+    server: string;
     data: Uint8ClampedArray;
     width: number;
     height: number;
   }) => {
-    /* const res = */ await ipcInvoke('publish-frame-gl', frame);
+    return await ipcInvoke(OpenGLDataChannels.PublishFrame, frame);
   };
 
-  const publishFrameMetal = async (frame: {
+  const pullOpenGLFrame = async (uuid: string): Promise<SyphonFrameData | undefined> => {
+    return await ipcInvoke(OpenGLDataChannels.PullFrame, uuid);
+  };
+
+  // ------------------------------------------------ //
+  // --------------------- Metal -------------------- //
+  // ------------------------------------------------ //
+
+  const connectMetalDataServer = async (uuid: string): Promise<SyphonServerDescription | Error> => {
+    // Update existing servers.
+    servers.value = await ipcInvoke(ServerDirectoryChannels.GetServers);
+    return await ipcInvoke(MetalDataChannels.ConnectServer, uuid);
+  };
+
+  const createMetalDataServer = async (name: string): Promise<Error | SyphonServerDescription> => {
+    return await ipcInvoke(MetalDataChannels.CreateServer, name);
+  };
+
+  const destroyMetalDataServer = async (name: string): Promise<Error | SyphonServerDescription> => {
+    return await ipcInvoke(MetalDataChannels.DestroyServer, name);
+  };
+
+  const publishMetalData = async (frame: {
+    server: string;
     data: Uint8ClampedArray;
     width: number;
     height: number;
-  }) => {
-    /* const res = */ await ipcInvoke('publish-frame-metal', frame);
+  }): Promise<undefined | Error> => {
+    return await ipcInvoke(MetalDataChannels.PublishFrame, frame);
+  };
+
+  const pullMetalFrame = async (uuid: string): Promise<SyphonFrameData | undefined> => {
+    return await ipcInvoke(MetalDataChannels.PullFrame, uuid);
+  };
+
+  // ------------------------------------------------ //
+  // -------------------- Internal ------------------ //
+  // ------------------------------------------------ //
+
+  onBeforeMount(async () => {
+    // Get already running servers.
+    servers.value = await ipcInvoke(ServerDirectoryChannels.GetServers);
+
+    ipcOn(SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification, _onAnnounce);
+    ipcOn(SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification, _onRetire);
+  });
+
+  onBeforeUnmount(() => {
+    ipcRemove(SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification);
+    ipcRemove(SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification);
+  });
+
+  const _onAnnounce = (
+    _event: IpcRendererEvent,
+    data: { message: SyphonServerDescription; servers: SyphonServerDescription[] },
+  ): SyphonServerDescription => {
+    servers.value = data.servers;
+    return data.message;
+  };
+
+  const _onRetire = (
+    _event: IpcRendererEvent,
+    data: { message: SyphonServerDescription; servers: SyphonServerDescription[] },
+  ): SyphonServerDescription => {
+    servers.value = data.servers;
+    return data.message;
   };
 
   return {
     servers,
     serverByUUID,
-    connectToServer,
-    createServer,
-    publishFrameGL,
-    publishFrameMetal,
+
+    OpenGL: {
+      connectDataServer: connectOpenGLDataServer,
+      createDataServer: createOpenGLDataServer,
+      publishData: publishOpenGLData,
+      destroyDataServer: destroyOpenGLDataServer,
+      pullFrame: pullOpenGLFrame,
+    },
+    Metal: {
+      connectDataServer: connectMetalDataServer,
+      createDataServer: createMetalDataServer,
+      publishData: publishMetalData,
+      destroyDataServer: destroyMetalDataServer,
+      pullFrame: pullMetalFrame,
+    },
   };
 };
