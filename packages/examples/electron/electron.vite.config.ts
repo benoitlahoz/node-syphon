@@ -9,6 +9,11 @@ import tailwind from 'tailwindcss';
 
 export default defineConfig({
   main: {
+    resolve: {
+      alias: {
+        '@/common': resolve('src/common'),
+      },
+    },
     plugins: [externalizeDepsPlugin()],
   },
   preload: {
@@ -17,6 +22,7 @@ export default defineConfig({
   renderer: {
     resolve: {
       alias: {
+        '@/common': resolve('src/common'),
         '@/renderer': resolve('src/renderer/src'),
         '@/components': resolve('src/renderer/src/components'),
         '@/composables': resolve('src/renderer/src/composables'),

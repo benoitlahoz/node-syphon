@@ -3561,6 +3561,11 @@ electron-vite@^2.3.0:
     magic-string "^0.30.10"
     picocolors "^1.0.1"
 
+electron-window-rtc@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/electron-window-rtc/-/electron-window-rtc-1.0.7.tgz#1f7d75f8a46d80cec854c65e2e586426a7854bb1"
+  integrity sha512-tIR6NSey50+061gWslxOA9Dm30zw+EqVMitkBGLbVyx51uFBX3v8uAjRdcg+CNpxLb9uQ4UoOlkVANWbD5uwwA==
+
 electron@34.0.1:
   version "34.0.1"
   resolved "https://registry.yarnpkg.com/electron/-/electron-34.0.1.tgz#bc2fdb8956831ba4c5c7d17bfa7b8780a7d635e7"

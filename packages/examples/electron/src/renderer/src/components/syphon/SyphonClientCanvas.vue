@@ -6,17 +6,12 @@ export default {
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import {
-  SyphonServerDescriptionUUIDKey,
-  type SyphonFrameData,
-  type SyphonServerDescription,
-} from 'node-syphon/universal';
+import type { SyphonServerDescription } from 'node-syphon/universal';
+import { SyphonServerDescriptionUUIDKey } from 'node-syphon/universal';
 import { useSyphon } from '../../composables/useSyphon';
 import WorkerURL from './workers/simple-client.worker?url';
 
-const ipcInvoke = window.electron.ipcRenderer.invoke;
-
-const { connectToServer } = useSyphon();
+const { OpenGL, Metal } = useSyphon();
 
 const { server, type = 'gl' } = defineProps<{
   server?: SyphonServerDescription;
@@ -32,6 +27,8 @@ let animationFrameReqId;
 const width = ref<number>(0);
 const height = ref<number>(0);
 
+let getFrame;
+
 watch(
   () => [width.value, height.value],
   () => {
@@ -46,7 +43,10 @@ watch(
       // Cancel previous animation frame.
       if (animationFrameReqId) cancelAnimationFrame(animationFrameReqId);
 
-      const serverOrError = await connectToServer(server[SyphonServerDescriptionUUIDKey], type);
+      const serverOrError =
+        type === 'gl'
+          ? await OpenGL.connectDataServer(server[SyphonServerDescriptionUUIDKey])
+          : await Metal.connectDataServer(server[SyphonServerDescriptionUUIDKey]);
 
       if (serverOrError instanceof Error) {
         console.error(serverOrError);
@@ -54,8 +54,10 @@ watch(
       }
 
       if (!offscreenCanvas) {
-        console.error('Canvas was not mounted yet.');
+        throw new Error('Canvas was not mounted yet.');
       }
+
+      getFrame = type === 'gl' ? pullOpenGLFrame : pullMetalFrame;
 
       if (!worker) {
         worker = new Worker(WorkerURL);
@@ -88,13 +90,23 @@ onBeforeUnmount(() => {
   }
 });
 
-const getFrame = async () => {
+const pullOpenGLFrame = async () => {
   // Pull frame from main process on specific server.
+  const frame = await OpenGL.pullFrame(server!.SyphonServerDescriptionUUIDKey)!;
 
-  const frame: SyphonFrameData | undefined = await ipcInvoke(
-    'get-frame',
-    server!.SyphonServerDescriptionUUIDKey,
-  );
+  if (frame) {
+    width.value = frame.width;
+    height.value = frame.height;
+
+    await worker.postMessage({ buffer: frame.buffer, width: width.value, height: height.value });
+  }
+
+  animationFrameReqId = requestAnimationFrame(getFrame);
+};
+
+const pullMetalFrame = async () => {
+  // Pull frame from main process on specific server.
+  const frame = await Metal.pullFrame(server!.SyphonServerDescriptionUUIDKey)!;
 
   if (frame) {
     width.value = frame.width;
