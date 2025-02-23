@@ -6,7 +6,7 @@ import { createOpenGLDataClient } from './syphon/opengl-data';
 
 app.commandLine.appendSwitch('enable-unsafe-webgpu');
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   if (is.dev) {
     process.on('SIGINT', () => {
       // Handle Ctrl+C in dev mode.
@@ -20,7 +20,7 @@ app.whenReady().then(() => {
   }
 
   // Bootstrap Syphon and get servers directory.
-  const directory = bootstrapSyphon();
+  const directory = await bootstrapSyphon();
   createMenu(directory);
   createOpenGLDataClient(directory);
 

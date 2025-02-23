@@ -34,18 +34,20 @@
   "scripts": {
     "install": "echo",
     "prebuild": "rimraf dist",
-    "build": "yarn build:syphon && node-gyp configure && node-gyp build && yarn build:main && yarn build:directory && rimraf build",
+    "build": "yarn build:syphon && node-gyp configure && node-gyp build && yarn build:ts && yarn build:directory && rimraf build",
     "build:syphon": "./scripts/build-syphon.sh Release",
     "build:addon": "node-gyp configure && node-gyp build && mv build/Release/syphon.node dist/bin/syphon.node && rimraf build",
-    "build:main": "vite build --config vite.config.main.mts && vite build --config vite.config.universal.mts",
+    "build:ts": "yarn build:directory && vite build --config vite.config.node.mts && vite build --config vite.config.universal.mts",
     "build:directory": "vite build --config vite.config.directory.mts"
   },
   "devDependencies": {
     "@types/bindings": "^1.5.1",
     "@types/node": "^20.4.5",
+    "magic-string": "^0.30.17",
     "node-addon-api": "^8.3.0",
     "node-gyp": "^9.4.0",
     "rimraf": "^5.0.1",
+    "rollup": "^4.34.8",
     "terser": "^5.19.2",
     "vite": "^4.4.7",
     "vite-plugin-dts": "^3.3.1",

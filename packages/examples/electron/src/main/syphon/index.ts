@@ -10,22 +10,25 @@ let directory: ElectronSyphonDirectory;
 // let offscreenWindow: BrowserWindow | null;
 // let offscreenServer: SyphonOpenGLServer | null;
 
-export const bootstrapSyphon = () => {
-  setupDirectory();
+export const bootstrapSyphon = async () => {
+  await setupDirectory();
   return directory;
 };
 
 export const closeSyphon = () => {
   ipcMain.removeHandler(ServerDirectoryChannels.GetServers);
-  directory.dispose();
+  if (directory) directory.dispose();
 
   // closeOffscreenServer();
 };
 
-const setupDirectory = () => {
-  directory = new ElectronSyphonDirectory();
-  ipcMain.handle(ServerDirectoryChannels.GetServers, handleGetServers);
-  directory.listen();
+const setupDirectory = async () => {
+  try {
+    directory = await ElectronSyphonDirectory.run();
+    ipcMain.handle(ServerDirectoryChannels.GetServers, handleGetServers);
+  } catch (err: unknown) {
+    throw err;
+  }
 };
 
 const handleGetServers = async () => {
