@@ -1,6 +1,6 @@
-import { SyphonAddon } from '../common/addon';
-import type { SyphonFrameData } from './universal';
-import type { SyphonServerDescription } from '../common/types';
+import { SyphonAddon } from '../../common/bindings';
+import type { SyphonFrameData } from '../universal';
+import type { SyphonServerDescription } from '../../common/types';
 
 // TODO: Test with window handle.
 export interface SyphonOpenGLClientConstructorOptions {

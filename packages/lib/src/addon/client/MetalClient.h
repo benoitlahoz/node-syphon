@@ -2,7 +2,7 @@
 #define ___METAL_CLIENT_H___
 
 #include <napi.h>
-#include <Foundation/Foundation.H>
+#include <Foundation/Foundation.h>
 #include <Cocoa/Cocoa.h>
 #include <Syphon/Syphon.h>
 #include <Metal/Metal.h>

@@ -9,11 +9,11 @@ FrameEventListener::FrameEventListener() {
 
 void FrameEventListener::Set(Napi::Env env, Napi::Function listener) {
     m_listener = Napi::ThreadSafeFunction::New(
-      env,
-      listener, 
-      "Frame Event Listener",
-      0,
-      1
+        env,
+        listener, 
+        "Frame Event Listener",
+        0,
+        1
     );
 }
 

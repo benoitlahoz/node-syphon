@@ -1,6 +1,5 @@
-import { SyphonAddon } from '../common/addon';
-
-import type { SyphonServerDescription } from '../common/types';
+import { SyphonAddon } from '../../common/bindings';
+import type { SyphonServerDescription } from '../../common/types';
 
 export type SyphonTextureTarget = 'GL_TEXTURE_RECTANGLE_EXT' | 'GL_TEXTURE_2D';
 

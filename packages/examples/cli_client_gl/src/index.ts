@@ -32,11 +32,13 @@ const listen = () => {
           console.log('Create');
           client = new SyphonOpenGLClient(directory.servers[directory.servers.length - 1]);
           client.on('frame', (frame: SyphonFrameData) => {
-            console.log('FIRST', frame);
+            console.log('First listener', frame);
+            frame = null;
           });
 
           client.on('frame', (frame: SyphonFrameData) => {
-            console.log('SECOND', frame);
+            console.log('Second listener', frame);
+            frame = null;
           });
         }
       }

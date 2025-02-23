@@ -2,10 +2,9 @@
 #define ___SERVER_DIRECTORY_H___
 
 #include <napi.h>
-
-#import <Foundation/Foundation.H>
-#import <Cocoa/Cocoa.h>
-#import <Syphon/Syphon.h>
+#include <Foundation/Foundation.h>
+#include <Cocoa/Cocoa.h>
+#include <Syphon/Syphon.h>
 
 namespace syphon
 {

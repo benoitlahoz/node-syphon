@@ -1,16 +1,54 @@
 import { webContents } from 'electron';
-import { SyphonServerDescription, SyphonServerDirectory } from 'node-syphon';
-import { SyphonServerDirectoryListenerChannel } from 'node-syphon';
+import {
+  SyphonServerDescription,
+  SyphonServerDirectory,
+  SyphonServerDirectoryListenerChannel,
+} from 'node-syphon';
+import logToFile from 'electron-log';
 
 export class ElectronSyphonDirectory {
+  public static async run(): Promise<ElectronSyphonDirectory> {
+    return new Promise((resolve, reject) => {
+      try {
+        const maxAttempts = 100;
+        let attempt = 0;
+
+        const directory = new ElectronSyphonDirectory();
+
+        logToFile.log(directory.debugExecCommand);
+
+        directory.listen();
+
+        const interval = setInterval(() => {
+          if (directory.isRunning) {
+            clearInterval(interval);
+            resolve(directory);
+            return;
+          }
+
+          attempt++;
+
+          if (attempt >= maxAttempts) {
+            clearInterval(interval);
+            reject(new Error(`Unable to run SyphonServerDirectory.`));
+          }
+        }, 200);
+      } catch (err: unknown) {
+        reject(err);
+      }
+    });
+  }
+
   private directory: SyphonServerDirectory;
 
-  constructor() {
+  private constructor() {
     this.directory = new SyphonServerDirectory();
 
     this.directory.on(
       SyphonServerDirectoryListenerChannel.SyphonServerInfoNotification,
       (message: string) => {
+        logToFile.log('Info', message);
+
         this.notifyAll.bind(this)(
           SyphonServerDirectoryListenerChannel.SyphonServerInfoNotification,
           message,
@@ -21,6 +59,8 @@ export class ElectronSyphonDirectory {
     this.directory.on(
       SyphonServerDirectoryListenerChannel.SyphonServerErrorNotification,
       (message: string) => {
+        logToFile.log('Error', message);
+
         this.notifyAll.bind(this)(
           SyphonServerDirectoryListenerChannel.SyphonServerErrorNotification,
           message,
@@ -31,6 +71,8 @@ export class ElectronSyphonDirectory {
     this.directory.on(
       SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
       (message: SyphonServerDescription) => {
+        logToFile.log('Announce', message);
+
         this.notifyAll.bind(this)(
           SyphonServerDirectoryListenerChannel.SyphonServerAnnounceNotification,
           message,
@@ -41,6 +83,8 @@ export class ElectronSyphonDirectory {
     this.directory.on(
       SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification,
       (message: SyphonServerDescription) => {
+        logToFile.log('Retire', message);
+
         this.notifyAll.bind(this)(
           SyphonServerDirectoryListenerChannel.SyphonServerRetireNotification,
           message,
@@ -59,6 +103,14 @@ export class ElectronSyphonDirectory {
 
   public get servers(): SyphonServerDescription[] {
     return this.directory.servers;
+  }
+
+  public get isRunning(): boolean {
+    return this.directory.isRunning;
+  }
+
+  public get debugExecCommand(): string {
+    return this.directory.debugExecCommand;
   }
 
   private notifyAll(channel: SyphonServerDirectoryListenerChannel, message: any): void {

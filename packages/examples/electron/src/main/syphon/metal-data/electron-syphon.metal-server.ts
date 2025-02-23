@@ -16,6 +16,8 @@ export class ElectronSyphonMetalServer {
             resolve(server);
           }
 
+          attempt++;
+
           if (attempt === maxAttempts) {
             reject(new Error(`Could'nt get description for server with name '${name}'.`));
           }
@@ -33,7 +35,7 @@ export class ElectronSyphonMetalServer {
     this.worker = new Worker(join(__dirname, SyphonServerWorkerURL));
     this.worker.on('message', this.onWorkerMessage.bind(this));
     this.worker.on('error', (err: unknown) =>
-      console.error(`Error in OpenGL server worker: ${err}`),
+      console.error(`Error in Metal server worker: ${err}`),
     );
     this.worker.postMessage({
       cmd: 'connect',

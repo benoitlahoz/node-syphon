@@ -16,6 +16,8 @@ export class ElectronSyphonGLServer {
             resolve(server);
           }
 
+          attempt++;
+
           if (attempt === maxAttempts) {
             reject(new Error(`Could'nt get description for server with name '${name}'.`));
           }
