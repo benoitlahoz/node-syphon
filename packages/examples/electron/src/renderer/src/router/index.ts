@@ -1,4 +1,4 @@
-import { MetalDataRoutes, OpenGLDataRoutes } from '@/common/routes';
+import { MetalDataRoutes, OpenGLDataRoutes, OpenGLOffscreenRoutes } from '@/common/routes';
 import { createRouter, createWebHashHistory } from 'vue-router';
 
 const routes = [
@@ -18,6 +18,14 @@ const routes = [
   {
     path: MetalDataRoutes.server,
     component: () => import('@/components/windows/data/SimpleMetalDataServer.vue'),
+  },
+  {
+    path: OpenGLOffscreenRoutes.client,
+    component: () => import('@/components/windows/offscreen/OffscreenGLServerDescription.vue'),
+  },
+  {
+    path: OpenGLOffscreenRoutes.server,
+    component: () => import('@/components/windows/offscreen/OffscreenGLServer.vue'),
   },
   /*
   {

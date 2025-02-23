@@ -39,6 +39,9 @@ body,
     --destructive: 346 100% 48%;
     --destructive-foreground: 210 40% 98%;
 
+    --warning: 39 100% 53%;
+    --warning-foreground: 240 3.4% 15%;
+
     --ring: 212.7 26.8% 83.9%;
 
     --radius: 0.5rem;

@@ -8,7 +8,7 @@ import type { SyphonServerDescription } from '../../common';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Launch from this 'dist' folder.
-const COMMAND = `node ${resolve(__dirname, 'server-directory-process.js')}`;
+const PATH = `${resolve(__dirname, 'server-directory-process.js')}`;
 
 const EXIT_TYPES = [
   `exit`,
@@ -35,10 +35,10 @@ export const NodeSyphonNotificationTypeKey = 'NodeSyphonNotificationType';
 export const NodeSyphonServerDictionaryKey = 'NodeSyphonServerDictionary';
 
 export class SyphonServerDirectory {
-  private static _instance: SyphonServerDirectory;
+  private static instance: SyphonServerDirectory;
 
-  private _serverDirectoryProcess: ChildProcess;
-  private _serverDirectoryRunning = false;
+  private directoryProcess: ChildProcess;
+  private directoryRunning = false;
 
   /**
    * Current servers in directory.
@@ -54,22 +54,22 @@ export class SyphonServerDirectory {
   > = {};
 
   constructor() {
-    if (SyphonServerDirectory._instance) {
-      return SyphonServerDirectory._instance;
+    if (SyphonServerDirectory.instance) {
+      return SyphonServerDirectory.instance;
     }
 
-    SyphonServerDirectory._instance = this;
+    SyphonServerDirectory.instance = this;
   }
 
   public dispose(): void {
     this.removeAllListeners();
 
-    if (this._serverDirectoryProcess) {
-      this._serverDirectoryProcess.kill();
-      this._serverDirectoryProcess = null;
+    if (this.directoryProcess) {
+      this.directoryProcess.kill();
+      this.directoryProcess = null;
       this._servers.length = 0;
 
-      this._serverDirectoryRunning = false;
+      this.directoryRunning = false;
     }
   }
 
@@ -97,15 +97,18 @@ export class SyphonServerDirectory {
   }
 
   public get isRunning(): boolean {
-    return this._serverDirectoryRunning;
+    return this.directoryRunning;
   }
 
   public get servers(): SyphonServerDescription[] {
     return this._servers;
   }
 
-  public get debugExecCommand(): string {
-    return COMMAND;
+  public get debug(): { path: string; pid: number } {
+    return {
+      path: PATH,
+      pid: this.directoryProcess.pid,
+    };
   }
 
   /**
@@ -113,30 +116,29 @@ export class SyphonServerDirectory {
    */
   public listen(): void {
     try {
-      if (this._serverDirectoryRunning) {
+      if (this.directoryRunning) {
         // Run once and only once, but allow adding listeners.
         return;
       }
 
-      this._handleExit();
+      this.handleExitSignal();
 
       // Actually run the Syphon servers listener.
-      // this._serverDirectoryProcess = exec(COMMAND);
-      this._serverDirectoryProcess = fork(`${resolve(__dirname, 'server-directory-process.js')}`, {
+      this.directoryProcess = fork(PATH, {
         silent: true,
       });
 
       this._emit(
         SyphonServerDirectoryListenerChannel.SyphonServerInfoNotification,
-        `Syphon directory server process launched with pid: ${this._serverDirectoryProcess.pid}`
+        `Syphon directory server process launched with pid: ${this.directoryProcess.pid}`
       );
 
       // Node addon will convert Syphon's server directory dictionary into a parsable JSON string.
-      this._serverDirectoryProcess.stdout.setEncoding('utf8');
-      this._serverDirectoryProcess.stdout.on('data', this._parseProcessData.bind(this));
+      this.directoryProcess.stdout.setEncoding('utf8');
+      this.directoryProcess.stdout.on('data', this._parseProcessData.bind(this));
 
-      this._serverDirectoryProcess.stderr.setEncoding('utf8');
-      this._serverDirectoryProcess.stderr.on('data', (err: any) => {
+      this.directoryProcess.stderr.setEncoding('utf8');
+      this.directoryProcess.stderr.on('data', (err: any) => {
         throw new Error(err.toString());
       });
 
@@ -145,7 +147,7 @@ export class SyphonServerDirectory {
         `SyphonServerDirectory will set 'running: true`
       );
 
-      this._serverDirectoryRunning = true;
+      this.directoryRunning = true;
     } catch (err) {
       this._emit(SyphonServerDirectoryListenerChannel.SyphonServerErrorNotification, err);
       this.dispose();
@@ -268,13 +270,13 @@ export class SyphonServerDirectory {
     }
   }
 
-  private _handleExit(): void {
+  private handleExitSignal(): void {
     process.stdin.resume();
 
     // Listen to exit signals.
     EXIT_TYPES.forEach((eventType) => {
       const end = () => {
-        if (this._serverDirectoryProcess) {
+        if (this.directoryProcess) {
           console.log('Exit with event type', eventType);
           this.dispose();
 
