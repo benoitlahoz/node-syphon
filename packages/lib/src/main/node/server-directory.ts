@@ -1,14 +1,14 @@
-import { exec } from 'child_process';
+import { fork } from 'child_process';
 import type { ChildProcess } from 'child_process';
-import { dirname, join } from 'path';
+import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
-import type { SyphonServerDescription } from '../common';
+import type { SyphonServerDescription } from '../../common';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Launch from this 'dist' folder.
-const COMMAND = `node ${join(__dirname, 'server-directory-process.js')}`;
+const COMMAND = `node ${resolve(__dirname, 'server-directory-process.js')}`;
 
 const EXIT_TYPES = [
   `exit`,
@@ -21,7 +21,7 @@ const EXIT_TYPES = [
   `SIGTERM`,
 ];
 
-import { SyphonServerDirectoryListenerChannel } from './universal';
+import { SyphonServerDirectoryListenerChannel } from '../universal';
 export { SyphonServerDirectoryListenerChannel };
 
 export const NodeSyphonMessageTypeKey = 'NodeSyphonMessageType';
@@ -104,6 +104,10 @@ export class SyphonServerDirectory {
     return this._servers;
   }
 
+  public get debugExecCommand(): string {
+    return COMMAND;
+  }
+
   /**
    * Listens to servers' directory changes.
    */
@@ -117,22 +121,35 @@ export class SyphonServerDirectory {
       this._handleExit();
 
       // Actually run the Syphon servers listener.
-      this._serverDirectoryProcess = exec(COMMAND);
+      // this._serverDirectoryProcess = exec(COMMAND);
+      this._serverDirectoryProcess = fork(`${resolve(__dirname, 'server-directory-process.js')}`, {
+        silent: true,
+      });
 
       this._emit(
         SyphonServerDirectoryListenerChannel.SyphonServerInfoNotification,
         `Syphon directory server process launched with pid: ${this._serverDirectoryProcess.pid}`
       );
 
-      // Listens to process outputs.
-      // Node addon will parse Syphon's server directory dictionary into a parsable JSON string.
+      // Node addon will convert Syphon's server directory dictionary into a parsable JSON string.
       this._serverDirectoryProcess.stdout.setEncoding('utf8');
       this._serverDirectoryProcess.stdout.on('data', this._parseProcessData.bind(this));
+
+      this._serverDirectoryProcess.stderr.setEncoding('utf8');
+      this._serverDirectoryProcess.stderr.on('data', (err: any) => {
+        throw new Error(err.toString());
+      });
+
+      this._emit(
+        SyphonServerDirectoryListenerChannel.SyphonServerInfoNotification,
+        `SyphonServerDirectory will set 'running: true`
+      );
 
       this._serverDirectoryRunning = true;
     } catch (err) {
       this._emit(SyphonServerDirectoryListenerChannel.SyphonServerErrorNotification, err);
       this.dispose();
+      console.error(err);
       throw err;
     }
   }
@@ -147,8 +164,8 @@ export class SyphonServerDirectory {
 
   private _parseProcessData(data: any) {
     try {
-      // Addon outputs a string that ends, or is separated by this token.
-      const split = data.toString().split('--__node-syphon-delimiter__--');
+      // Addon outputs a string that ends by new line.
+      const split = data.toString().split(/\r?\n/);
       let obj = [];
 
       for (const str of split) {
@@ -246,6 +263,7 @@ export class SyphonServerDirectory {
         }
       }
     } catch (err) {
+      console.error(err);
       throw err;
     }
   }
@@ -257,6 +275,7 @@ export class SyphonServerDirectory {
     EXIT_TYPES.forEach((eventType) => {
       const end = () => {
         if (this._serverDirectoryProcess) {
+          console.log('Exit with event type', eventType);
           this.dispose();
 
           // Clean process listeners.

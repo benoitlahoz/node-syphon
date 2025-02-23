@@ -2,7 +2,7 @@
 #define ___OPENGL_HELPER_H___
 
 #include <napi.h>
-#include <Foundation/Foundation.H>
+#include <Foundation/Foundation.h>
 #include <Cocoa/Cocoa.h>
 #include <OpenGL/gl.h>
 

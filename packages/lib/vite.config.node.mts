@@ -9,7 +9,7 @@ export default defineConfig({
   build: {
     emptyOutDir: false,
     lib: {
-      entry: path.resolve(__dirname, 'src/main/index.ts'),
+      entry: path.resolve(__dirname, 'src/main/node.ts'),
       fileName: 'node-syphon',
       formats: ['es', 'cjs'],
     },
@@ -21,6 +21,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
+      '@/common': path.resolve(__dirname, 'src/common'),
     },
   },
   optimizeDeps: {

@@ -2,7 +2,7 @@
 #define ___OPENGL_CLIENT_H___
 
 #include <napi.h>
-#include <Foundation/Foundation.H>
+#include <Foundation/Foundation.h>
 #include <Cocoa/Cocoa.h>
 #include <Syphon/Syphon.h>
 #include <OpenGL/gl.h>

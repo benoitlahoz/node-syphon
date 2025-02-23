@@ -4,7 +4,7 @@
 #include <napi.h>
 #include <map>
 
-#include <Foundation/Foundation.H>
+#include <Foundation/Foundation.h>
 #include <Cocoa/Cocoa.h>
 #include <OpenGL/OpenGL.h>
 #include <Syphon/Syphon.h>

@@ -10,7 +10,7 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, 'src/server-directory.process/index.ts'),
       fileName: 'server-directory-process',
-      formats: ['cjs'],
+      formats: ['es', 'cjs'], // Was working in Electron dev with cjs.
     },
     minify: 'terser',
     rollupOptions: {

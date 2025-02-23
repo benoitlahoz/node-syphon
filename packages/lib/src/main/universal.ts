@@ -1,9 +1,9 @@
 export enum SyphonServerDirectoryListenerChannel {
-  SyphonServerInfoNotification = 'syphon:server.info',
-  SyphonServerErrorNotification = 'syphon:server.error',
-  SyphonServerAnnounceNotification = 'syphon:server.announce',
-  SyphonServerRetireNotification = 'syphon:server.retire',
-  SyphonServerUpdateNotification = 'syphon:server.update',
+  SyphonServerInfoNotification = 'info',
+  SyphonServerErrorNotification = 'error',
+  SyphonServerAnnounceNotification = 'announce',
+  SyphonServerRetireNotification = 'retire',
+  SyphonServerUpdateNotification = 'update',
 }
 
 export interface SyphonFrameData {

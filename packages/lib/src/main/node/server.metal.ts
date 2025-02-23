@@ -1,6 +1,5 @@
-import { SyphonAddon } from '../common/addon';
-
-import type { SyphonServerDescription } from '../common/types';
+import { SyphonAddon } from '../../common/bindings';
+import type { SyphonServerDescription } from '../../common/types';
 
 export class SyphonMetalServer {
   private _server: any;

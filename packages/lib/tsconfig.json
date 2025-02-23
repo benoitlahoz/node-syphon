@@ -15,12 +15,15 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
+    "allowJs": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@/common/*": ["src/common/*"]
     },
-    "lib": ["es2015", "webworker"]
+    "lib": ["es2015", "webworker"],
+    "types": ["vite/client"]
   },
   "include": ["./src/**/*.ts", "./src/**/*.tsx", "./src/**/*.d.ts"],
   "exclude": ["node_modules"]

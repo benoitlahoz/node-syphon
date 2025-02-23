@@ -2,7 +2,7 @@
 #define __SERVER_DESCRIPTION_HELPER_H__
 
 #include <napi.h>
-#include <Foundation/Foundation.H>
+#include <Foundation/Foundation.h>
 #include <Cocoa/Cocoa.h>
 #include <Syphon/Syphon.h>
 

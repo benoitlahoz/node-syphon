@@ -7,6 +7,8 @@
 
 using namespace syphon;
 
+// Was used for pulling frames from server -> replaced by 'On' callback in servers.
+
 class PixelBufferPromiseWorker : public PromiseWorker
 {
 
