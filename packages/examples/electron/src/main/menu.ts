@@ -2,6 +2,7 @@ import { BrowserWindow, Menu, MenuItem } from 'electron';
 import { ElectronSyphonDirectory } from './syphon/electron-syphon.directory';
 import { createOpenGLDataClient } from './syphon/opengl-data';
 import { createMetalDataClient } from './syphon/metal-data';
+import { createOpenGLOffscreen } from './syphon/opengl-offscreen';
 
 const MenuLabel = 'Implementations';
 
@@ -15,6 +16,11 @@ const Implementation = {
     id: 'metal-data',
     label: 'Metal Data',
     accelerator: 'CmdOrCtrl+Shift+M',
+  },
+  OpenGLOffscreen: {
+    id: 'opengl-offscreen',
+    label: 'OpenGL Offscreen',
+    accelerator: 'CmdOrCtrl+Shift+G',
   },
 };
 
@@ -66,10 +72,31 @@ export const createMenu = (directory: ElectronSyphonDirectory) => {
       },
     };
 
+    const openGLOffscreenItem = {
+      label: Implementation.OpenGLOffscreen.label,
+      id: Implementation.OpenGLOffscreen.id,
+      accelerator: Implementation.OpenGLOffscreen.accelerator,
+      checked: checked === Implementation.OpenGLOffscreen.id,
+      type: 'radio' as any,
+      click: (item: MenuItem) => {
+        if (checked !== item.id) {
+          const windows = BrowserWindow.getAllWindows();
+
+          createOpenGLOffscreen();
+          checked = item.id;
+
+          for (const window of windows) {
+            window.close();
+            window.destroy();
+          }
+        }
+      },
+    };
+
     menu.append(
       new MenuItem({
         label: MenuLabel,
-        submenu: [openGLDataItem, metalDataItem],
+        submenu: [openGLDataItem, metalDataItem, openGLOffscreenItem],
       }),
     );
 
