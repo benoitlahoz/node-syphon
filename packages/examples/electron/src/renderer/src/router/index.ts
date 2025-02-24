@@ -2,6 +2,7 @@ import {
   MetalDataRoutes,
   OpenGLDataRoutes,
   OpenGLOffscreenRoutes,
+  WebGPUOffscreenRoutes,
   WebRTCOffscreenRoutes,
 } from '@/common/routes';
 import { createRouter, createWebHashHistory } from 'vue-router';
@@ -39,6 +40,10 @@ const routes = [
   {
     path: WebRTCOffscreenRoutes.server,
     component: () => import('@/components/windows/offscreen/WebRTCReceiver.vue'),
+  },
+  {
+    path: WebGPUOffscreenRoutes.client,
+    component: () => import('@/components/windows/offscreen/WebGPUServer.vue'),
   },
   /*
   {

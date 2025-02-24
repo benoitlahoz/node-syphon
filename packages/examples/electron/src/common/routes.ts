@@ -17,3 +17,7 @@ export const WebRTCOffscreenRoutes = {
   client: '/web-rtc-server',
   server: '/gl-web-rtc-offscreen',
 };
+
+export const WebGPUOffscreenRoutes = {
+  client: '/web-gpu-server',
+};
