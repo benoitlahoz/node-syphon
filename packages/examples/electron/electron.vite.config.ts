@@ -14,7 +14,11 @@ export default defineConfig({
         '@/common': resolve('src/common'),
       },
     },
-    plugins: [externalizeDepsPlugin()],
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: ['electron-window-rtc'],
+      }),
+    ],
   },
   preload: {
     plugins: [externalizeDepsPlugin()],

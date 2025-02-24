@@ -3,6 +3,7 @@ import { ElectronSyphonDirectory } from './syphon/electron-syphon.directory';
 import { createOpenGLDataClient } from './syphon/opengl-data';
 import { createMetalDataClient } from './syphon/metal-data';
 import { createOpenGLOffscreen } from './syphon/opengl-offscreen';
+import { createWebRTCOffscreen } from './syphon/opengl-offscreen-webrtc';
 
 const MenuLabel = 'Implementations';
 
@@ -22,6 +23,11 @@ const Implementation = {
     label: 'OpenGL Offscreen',
     accelerator: 'CmdOrCtrl+Shift+G',
   },
+  WebRTCOffscreenItem: {
+    id: 'webrtc-offscreen',
+    label: 'WebRTC Offscreen',
+    accelerator: 'CmdOrCtrl+Shift+W',
+  },
 };
 
 let checked = Implementation.OpenGLData.id;
@@ -37,16 +43,22 @@ export const createMenu = (directory: ElectronSyphonDirectory) => {
       checked: checked === Implementation.OpenGLData.id,
       type: 'radio' as any,
       click: (item: MenuItem) => {
-        if (checked !== item.id) {
-          const windows = BrowserWindow.getAllWindows();
+        try {
+          if (checked !== item.id) {
+            const windows = BrowserWindow.getAllWindows();
 
-          createOpenGLDataClient(directory);
-          checked = item.id;
+            createOpenGLDataClient(directory);
+            checked = item.id;
 
-          for (const window of windows) {
-            window.close();
-            window.destroy();
+            for (const window of windows) {
+              if (!window.isDestroyed()) {
+                window.close();
+                window.destroy();
+              }
+            }
           }
+        } catch (err: unknown) {
+          console.error(err);
         }
       },
     };
@@ -58,16 +70,22 @@ export const createMenu = (directory: ElectronSyphonDirectory) => {
       checked: checked === Implementation.MetalData.id,
       type: 'radio' as any,
       click: (item: MenuItem) => {
-        if (checked !== item.id) {
-          const windows = BrowserWindow.getAllWindows();
+        try {
+          if (checked !== item.id) {
+            const windows = BrowserWindow.getAllWindows();
 
-          createMetalDataClient(directory);
-          checked = item.id;
+            createMetalDataClient(directory);
+            checked = item.id;
 
-          for (const window of windows) {
-            window.close();
-            window.destroy();
+            for (const window of windows) {
+              if (!window.isDestroyed()) {
+                window.close();
+                window.destroy();
+              }
+            }
           }
+        } catch (err: unknown) {
+          console.error(err);
         }
       },
     };
@@ -79,16 +97,49 @@ export const createMenu = (directory: ElectronSyphonDirectory) => {
       checked: checked === Implementation.OpenGLOffscreen.id,
       type: 'radio' as any,
       click: (item: MenuItem) => {
-        if (checked !== item.id) {
-          const windows = BrowserWindow.getAllWindows();
+        try {
+          if (checked !== item.id) {
+            const windows = BrowserWindow.getAllWindows();
 
-          createOpenGLOffscreen();
-          checked = item.id;
+            createOpenGLOffscreen();
+            checked = item.id;
 
-          for (const window of windows) {
-            window.close();
-            window.destroy();
+            for (const window of windows) {
+              if (!window.isDestroyed()) {
+                window.close();
+                window.destroy();
+              }
+            }
           }
+        } catch (err: unknown) {
+          console.error(err);
+        }
+      },
+    };
+
+    const webRTCOffscreenItem = {
+      label: Implementation.WebRTCOffscreenItem.label,
+      id: Implementation.WebRTCOffscreenItem.id,
+      accelerator: Implementation.WebRTCOffscreenItem.accelerator,
+      checked: checked === Implementation.WebRTCOffscreenItem.id,
+      type: 'radio' as any,
+      click: (item: MenuItem) => {
+        try {
+          if (checked !== item.id) {
+            const windows = BrowserWindow.getAllWindows();
+
+            createWebRTCOffscreen();
+            checked = item.id;
+
+            for (const window of windows) {
+              if (!window.isDestroyed()) {
+                window.close();
+                window.destroy();
+              }
+            }
+          }
+        } catch (err: unknown) {
+          console.error(err);
         }
       },
     };
@@ -96,7 +147,7 @@ export const createMenu = (directory: ElectronSyphonDirectory) => {
     menu.append(
       new MenuItem({
         label: MenuLabel,
-        submenu: [openGLDataItem, metalDataItem, openGLOffscreenItem],
+        submenu: [openGLDataItem, metalDataItem, openGLOffscreenItem, webRTCOffscreenItem],
       }),
     );
 

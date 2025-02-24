@@ -18,13 +18,16 @@ let serverWindow: BrowserWindow;
 
 let directory: ElectronSyphonDirectory;
 
-let client: ElectronSyphonGLClient;
-let server: ElectronSyphonGLServer;
+let client: ElectronSyphonGLClient | null;
+let server: ElectronSyphonGLServer | null;
 
 export const createOpenGLDataClient = (serverDirectory: ElectronSyphonDirectory) => {
   if (!directory) directory = serverDirectory;
 
-  if (clientWindow) clientWindow.close();
+  if (clientWindow && !clientWindow.isDestroyed()) {
+    clientWindow.close();
+    clientWindow.destroy();
+  }
 
   ipcMain.handle(OpenGLDataChannels.ConnectServer, handleConnectServer);
   ipcMain.handle(OpenGLDataChannels.PullFrame, handlePullFrame);
@@ -37,6 +40,7 @@ export const createOpenGLDataClient = (serverDirectory: ElectronSyphonDirectory)
     ipcMain.removeListener(OpenGLDataChannels.OpenServerWindow, handleOpenServerWindow);
     if (client) {
       client.dispose();
+      client = null;
     }
   });
 };
@@ -44,7 +48,7 @@ export const createOpenGLDataClient = (serverDirectory: ElectronSyphonDirectory)
 export const createOpenGLDataServer = (serverDirectory?: ElectronSyphonDirectory) => {
   if (!directory && serverDirectory) directory = serverDirectory;
 
-  if (serverWindow) {
+  if (serverWindow && !serverWindow.isDestroyed()) {
     serverWindow.close();
     serverWindow.destroy();
   }
@@ -60,6 +64,7 @@ export const createOpenGLDataServer = (serverDirectory?: ElectronSyphonDirectory
     ipcMain.removeHandler(OpenGLDataChannels.DestroyServer);
     if (server) {
       server.dispose();
+      server = null;
     }
   });
 };
@@ -139,5 +144,6 @@ const handleDestroyServer = async (_event: IpcMainInvokeEvent, name: string) => 
     return new Error(`Server could not be found and can't be destroyed.`);
   }
   server.dispose();
+  server = null;
   return;
 };

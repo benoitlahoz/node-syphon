@@ -14,7 +14,7 @@ export class ElectronSyphonDirectory {
         let attempt = 0;
 
         const directory = new ElectronSyphonDirectory();
-        logToFile.log('SyphonServerDirectory was launched at path:', directory.debugExecCommand);
+        // logToFile.log('SyphonServerDirectory was launched at path:', directory.debug);
         directory.listen();
 
         const interval = setInterval(() => {
@@ -107,8 +107,8 @@ export class ElectronSyphonDirectory {
     return this.directory.isRunning;
   }
 
-  public get debugExecCommand(): string {
-    return this.directory.debugExecCommand;
+  public get debug(): { path: string; pid: number } {
+    return this.directory.debug;
   }
 
   private notifyAll(channel: SyphonServerDirectoryListenerChannel, message: any): void {
