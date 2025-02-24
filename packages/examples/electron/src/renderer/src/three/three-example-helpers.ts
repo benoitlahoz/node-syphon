@@ -10,7 +10,7 @@ import LeePerrySmith from '@/assets/models/LeePerrySmith/LeePerrySmith.glb?url';
 // https://threejs.org/examples/#webgl_helpers
 export class ThreeExampleHelpers {
   private stats = new Stats();
-  private offscreenCanvas;
+  private canvas2d;
   private ctx;
 
   private renderer: WebGLRenderer;
@@ -26,12 +26,14 @@ export class ThreeExampleHelpers {
     height: number;
   }) => {};
 
+  private _onresize = () => {};
+
   constructor(public readonly canvas: HTMLCanvasElement) {
     // Create offscreen canvas to get pixel data from.
-    this.offscreenCanvas = document.createElement('canvas');
-    this.offscreenCanvas.width = canvas.width;
-    this.offscreenCanvas.height = canvas.height;
-    this.ctx = this.offscreenCanvas.getContext('2d', { willReadFrequently: true });
+    this.canvas2d = document.createElement('canvas');
+    this.canvas2d.width = canvas.width;
+    this.canvas2d.height = canvas.height;
+    this.ctx = this.canvas2d.getContext('2d', { willReadFrequently: true });
 
     this.stats.showPanel(0);
     document.body.appendChild(this.stats.dom);
@@ -133,6 +135,10 @@ export class ThreeExampleHelpers {
     this._ondraw = fn.bind(this);
   }
 
+  public set onresize(fn: () => void) {
+    this._onresize = fn.bind(this);
+  }
+
   private async animate() {
     this.stats.begin();
 
@@ -154,12 +160,7 @@ export class ThreeExampleHelpers {
     this.stats.end();
 
     this.ctx.drawImage(this.canvas, 0, 0);
-    const imageData = this.ctx.getImageData(
-      0,
-      0,
-      this.offscreenCanvas.width,
-      this.offscreenCanvas.height,
-    );
+    const imageData = this.ctx.getImageData(0, 0, this.canvas2d.width, this.canvas2d.height);
 
     // await publishFrameGL({ data: imageData.data, width: canvas.width, height: canvas.height });
     await this._ondraw({
@@ -173,12 +174,16 @@ export class ThreeExampleHelpers {
     const height = window.innerHeight - 34;
     this.camera.aspect = window.innerWidth / height;
     this.camera.updateProjectionMatrix();
+    this.renderer.domElement.width = window.innerWidth;
+    this.renderer.domElement.height = height;
     this.renderer.setSize(window.innerWidth, height);
 
-    this.offscreenCanvas.width = this.canvas.width;
-    this.offscreenCanvas.height = this.canvas.height;
+    this.canvas2d.width = this.canvas.width;
+    this.canvas2d.height = this.canvas.height;
 
     this.stats.dom.style.top = '40px';
     this.stats.dom.style.left = '6px';
+
+    this._onresize();
   }
 }

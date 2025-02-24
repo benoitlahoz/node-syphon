@@ -12,3 +12,8 @@ export const OpenGLOffscreenRoutes = {
   client: '/gl-offscreen-description',
   server: '/gl-offscreen-uncontrolled',
 };
+
+export const WebRTCOffscreenRoutes = {
+  client: '/web-rtc-server',
+  server: '/gl-web-rtc-offscreen',
+};

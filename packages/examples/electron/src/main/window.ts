@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { BrowserWindow, screen } from 'electron';
+import { BrowserWindow, screen, shell } from 'electron';
 import { is } from '@electron-toolkit/utils';
 import icon from '../../resources/icon.png?asset';
 
@@ -21,6 +21,12 @@ export const createWindow = (route: string, width = 900, height = 600) => {
       sandbox: false, // Warning: Doesn't work in sandboxed environment because of import in preload script.
       backgroundThrottling: false,
     },
+  });
+
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    // open url in a browser and prevent default
+    shell.openExternal(url);
+    return { action: 'deny' };
   });
 
   win.on('ready-to-show', () => {

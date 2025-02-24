@@ -18,13 +18,16 @@ let serverWindow: BrowserWindow;
 
 let directory: ElectronSyphonDirectory;
 
-let client: ElectronSyphonMetalClient;
-let server: ElectronSyphonMetalServer;
+let client: ElectronSyphonMetalClient | null;
+let server: ElectronSyphonMetalServer | null;
 
 export const createMetalDataClient = (serverDirectory: ElectronSyphonDirectory) => {
   if (!directory) directory = serverDirectory;
 
-  if (clientWindow) clientWindow.close();
+  if (clientWindow && !clientWindow.isDestroyed()) {
+    clientWindow.close();
+    clientWindow.destroy();
+  }
 
   ipcMain.handle(MetalDataChannels.ConnectServer, handleConnectServer);
   ipcMain.handle(MetalDataChannels.PullFrame, handlePullFrame);
@@ -37,6 +40,7 @@ export const createMetalDataClient = (serverDirectory: ElectronSyphonDirectory) 
     ipcMain.removeListener(MetalDataChannels.OpenServerWindow, handleOpenServerWindow);
     if (client) {
       client.dispose();
+      client = null;
     }
   });
 };
@@ -44,7 +48,7 @@ export const createMetalDataClient = (serverDirectory: ElectronSyphonDirectory) 
 const createMetalDataServer = (serverDirectory?: ElectronSyphonDirectory) => {
   if (!directory && serverDirectory) directory = serverDirectory;
 
-  if (serverWindow) {
+  if (serverWindow && !serverWindow.isDestroyed()) {
     serverWindow.close();
     serverWindow.destroy();
   }
@@ -60,6 +64,7 @@ const createMetalDataServer = (serverDirectory?: ElectronSyphonDirectory) => {
     ipcMain.removeHandler(MetalDataChannels.DestroyServer);
     if (server) {
       server.dispose();
+      server = null;
     }
   });
 };
@@ -139,5 +144,6 @@ const handleDestroyServer = async (_event: IpcMainInvokeEvent, name: string) => 
     return new Error(`Server could not be found and can't be destroyed.`);
   }
   server.dispose();
+  server = null;
   return;
 };

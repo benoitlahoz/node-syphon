@@ -9,7 +9,7 @@ export default {
 <template lang="pug">
 .w-full.h-full.flex.flex-col.text-sm
   .bg-background-dark
-    .titlebar.w-full.font-semibold OpenGL Offscreen Server
+    .titlebar.w-full.font-semibold OpenGL Offscreen
   .bg-background.w-full.flex-1.flex.flex-col
     .w-full.flex.flex-col.flex-1.bg-warning.overflow-hidden.items-center.justify-center
       .text-lg.font-bold.text-white OpenGL Offscreen Rendering

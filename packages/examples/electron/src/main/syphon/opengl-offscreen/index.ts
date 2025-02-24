@@ -10,7 +10,10 @@ let serverWindow: BrowserWindow;
 let server: SyphonOpenGLServer;
 
 export const createOpenGLOffscreen = () => {
-  if (clientWindow) clientWindow.close();
+  if (clientWindow && !clientWindow.isDestroyed()) {
+    clientWindow.close();
+    clientWindow.destroy();
+  }
 
   clientWindow = createWindow(OpenGLOffscreenRoutes.client, 400, 100);
   serverWindow = createOffscreenWindow(OpenGLOffscreenRoutes.server);
@@ -18,8 +21,6 @@ export const createOpenGLOffscreen = () => {
 
   clientWindow.on('close', () => {
     server.dispose();
-    serverWindow.close();
-    serverWindow.destroy();
   });
 
   serverWindow.webContents.on('paint', handlePaint);

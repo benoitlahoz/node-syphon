@@ -83,17 +83,13 @@ export class ElectronSyphonGLServer {
     width: number;
     height: number;
   }): Promise<void> {
-    // const arr = new Uint8Array(frame.texture);
-    await this.worker.postMessage(
-      {
-        cmd: 'publish-surface',
-        frame: {
-          handle: frame.handle, // Will automativally get converted to Uint8Array. // was 'arr'
-          width: frame.width,
-          height: frame.height,
-        },
+    await this.worker.postMessage({
+      cmd: 'publish-surface',
+      frame: {
+        handle: frame.handle, // Will automativally get converted to Uint8Array.
+        width: frame.width,
+        height: frame.height,
       },
-      // [arr.buffer],
-    );
+    });
   }
 }
