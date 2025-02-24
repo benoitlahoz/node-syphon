@@ -7,14 +7,14 @@ export default {
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { WindowRTCPeerConnection, defineIpc } from 'electron-window-rtc/renderer';
-import { ThreeExampleHelpersOffscreen } from '../../../three/three-example-helpers_offscreen';
+import { ThreeExampleWebGLDecalsOffscreen } from '../../../three/three-example-webgl-decals_offscreen';
 import { nextTick } from 'vue';
 
 defineIpc(window.electron.ipcRenderer);
 
 let peerWindowConnection: WindowRTCPeerConnection | null = null;
 const canvasRef = ref<HTMLCanvasElement | undefined>();
-let example: ThreeExampleHelpersOffscreen;
+let example: ThreeExampleWebGLDecalsOffscreen;
 
 onMounted(async () => {
   if (peerWindowConnection) {
@@ -28,9 +28,7 @@ onMounted(async () => {
     throw new Error(`Canvas element may not be mounted yet.`);
   }
 
-  console.log('Canvas', canvas.width, canvas.height);
-
-  example = new ThreeExampleHelpersOffscreen(canvas, '42px', false); // retina: true
+  example = new ThreeExampleWebGLDecalsOffscreen(canvas, '38px', false); // retina: true
   nextTick(async () => {
     // Set constraints on next tick.
 

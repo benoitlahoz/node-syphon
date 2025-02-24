@@ -1,9 +1,11 @@
 import { BrowserWindow, Menu, MenuItem } from 'electron';
+import { is } from '@electron-toolkit/utils';
 import { ElectronSyphonDirectory } from './syphon/electron-syphon.directory';
 import { createOpenGLDataClient } from './syphon/opengl-data';
 import { createMetalDataClient } from './syphon/metal-data';
 import { createOpenGLOffscreen } from './syphon/opengl-offscreen';
 import { createWebRTCOffscreen } from './syphon/opengl-offscreen-webrtc';
+import { createWebGPUOffscreen } from './syphon/webgpu';
 
 const MenuLabel = 'Implementations';
 
@@ -27,6 +29,11 @@ const Implementation = {
     id: 'webrtc-offscreen',
     label: 'WebRTC Offscreen',
     accelerator: 'CmdOrCtrl+Shift+W',
+  },
+  WebGPUOffscreenItem: {
+    id: 'webgpu-offscreen',
+    label: 'WebGPU Offscreen',
+    accelerator: 'CmdOrCtrl+Shift+T',
   },
 };
 
@@ -144,12 +151,54 @@ export const createMenu = (directory: ElectronSyphonDirectory) => {
       },
     };
 
-    menu.append(
-      new MenuItem({
-        label: MenuLabel,
-        submenu: [openGLDataItem, metalDataItem, openGLOffscreenItem, webRTCOffscreenItem],
-      }),
-    );
+    const webGPUOffscreenItem = {
+      label: Implementation.WebGPUOffscreenItem.label,
+      id: Implementation.WebGPUOffscreenItem.id,
+      accelerator: Implementation.WebGPUOffscreenItem.accelerator,
+      checked: checked === Implementation.WebGPUOffscreenItem.id,
+      type: 'radio' as any,
+      click: (item: MenuItem) => {
+        try {
+          if (checked !== item.id) {
+            const windows = BrowserWindow.getAllWindows();
+
+            createWebGPUOffscreen();
+            checked = item.id;
+
+            for (const window of windows) {
+              if (!window.isDestroyed()) {
+                window.close();
+                window.destroy();
+              }
+            }
+          }
+        } catch (err: unknown) {
+          console.error(err);
+        }
+      },
+    };
+
+    if (is.dev) {
+      menu.append(
+        new MenuItem({
+          label: MenuLabel,
+          submenu: [
+            openGLDataItem,
+            metalDataItem,
+            openGLOffscreenItem,
+            webRTCOffscreenItem,
+            webGPUOffscreenItem,
+          ],
+        }),
+      );
+    } else {
+      menu.append(
+        new MenuItem({
+          label: MenuLabel,
+          submenu: [openGLDataItem, metalDataItem, openGLOffscreenItem, webRTCOffscreenItem],
+        }),
+      );
+    }
 
     Menu.setApplicationMenu(menu);
   }

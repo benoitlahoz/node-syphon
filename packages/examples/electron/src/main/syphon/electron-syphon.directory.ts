@@ -14,7 +14,7 @@ export class ElectronSyphonDirectory {
         let attempt = 0;
 
         const directory = new ElectronSyphonDirectory();
-        // logToFile.log('SyphonServerDirectory was launched at path:', directory.debug);
+
         directory.listen();
 
         const interval = setInterval(() => {
