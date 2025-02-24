@@ -277,7 +277,7 @@ export class SyphonServerDirectory {
     EXIT_TYPES.forEach((eventType) => {
       const end = () => {
         if (this.directoryProcess) {
-          console.log('Exit with event type', eventType);
+          console.log('SyphonServerDirectory exits with event type:', eventType);
           this.dispose();
 
           // Clean process listeners.
