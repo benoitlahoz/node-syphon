@@ -6,10 +6,19 @@ export default {
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { ThreeExampleWebGLDecalsOffscreen } from '../../../three/three-example-webgl-decals_offscreen';
+import triangleVertWGSL from '../shaders/triangle.vert.wgsl?raw';
+import redFragWGSL from '../shaders/red.frag.wgsl?raw';
 
+const devicePixelRatio = window.devicePixelRatio;
 const canvasRef = ref<HTMLCanvasElement | undefined>();
-let example: ThreeExampleWebGLDecalsOffscreen;
+let context: GPUCanvasContext;
+let adapter;
+let device;
+let presentationFormat;
+let pipeline;
+
+const width = ref(0);
+const height = ref(0);
 
 onMounted(async () => {
   const canvas: HTMLCanvasElement | undefined = canvasRef.value;
@@ -17,12 +26,72 @@ onMounted(async () => {
     throw new Error(`Canvas element may not be mounted yet.`);
   }
 
-  example = new ThreeExampleWebGLDecalsOffscreen(canvas, '42px', false); // retina: true
+  adapter = await navigator.gpu.requestAdapter();
+  device = await adapter.requestDevice();
+  presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+
+  context = canvas.getContext('webgpu') as GPUCanvasContext;
+  context.configure({
+    device,
+    format: presentationFormat,
+  });
+
+  pipeline = device.createRenderPipeline({
+    layout: 'auto',
+    vertex: {
+      module: device.createShaderModule({
+        code: triangleVertWGSL,
+      }),
+    },
+    fragment: {
+      module: device.createShaderModule({
+        code: redFragWGSL,
+      }),
+      targets: [
+        {
+          format: presentationFormat,
+        },
+      ],
+    },
+    primitive: {
+      topology: 'triangle-list',
+    },
+  });
+
+  width.value = canvas.clientWidth * devicePixelRatio;
+  height.value = canvas.clientHeight * devicePixelRatio;
+  canvas.width = width.value;
+  canvas.height = height.value;
+
+  requestAnimationFrame(onFrame);
 });
 
-onBeforeUnmount(() => {
-  if (example) example.dispose();
-});
+const onFrame = () => {
+  const commandEncoder = device.createCommandEncoder();
+  const textureView = context.getCurrentTexture().createView();
+  console.log(context.getCurrentTexture());
+
+  const renderPassDescriptor: GPURenderPassDescriptor = {
+    colorAttachments: [
+      {
+        view: textureView,
+        clearValue: [0, 0, 0, 0], // Clear to transparent
+        loadOp: 'clear',
+        storeOp: 'store',
+      },
+    ],
+  };
+
+  const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+  passEncoder.setPipeline(pipeline);
+  passEncoder.draw(3);
+  passEncoder.end();
+
+  device.queue.submit([commandEncoder.finish()]);
+  requestAnimationFrame(onFrame);
+};
+
+onBeforeUnmount(() => {});
 </script>
 
 <template lang="pug">
