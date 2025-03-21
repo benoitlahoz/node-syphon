@@ -5959,6 +5959,13 @@ node-syphon@^0.6.4:
   dependencies:
     bindings "^1.5.0"
 
+node-syphon@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/node-syphon/-/node-syphon-0.7.0.tgz#00e919d9630a566419c8d4c66663a7a9c949c7c4"
+  integrity sha512-rj32aZIGjORiNv+XbRx2XjqI7+eGa+Eq7tcMRncBBXIya6AJLSjXUU+9LhXYcNSJ9AT+g35ux7Cv0iXIW9gpfA==
+  dependencies:
+    bindings "^1.5.0"
+
 nopt@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/nopt/-/nopt-6.0.0.tgz#245801d8ebf409c6df22ab9d95b65e1309cdb16d"
