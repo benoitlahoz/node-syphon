@@ -1,10 +1,8 @@
 # node-syphon
 
-**WARNING: This package is VERY experimental and. Use at your own risks.**
+**WARNING: This package is VERY experimental. Use at your own risks.**
 
 Experimental and superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syphon-Framework) and `node.js`.
-
-As of `v0.6.4` node-syphon provides ways to listen to servers' directory, **copy pixels** to a server and **get pixels** from a client. Using a zero copy texture is on the roadmap, see **TODO** section for texture binding (contributors welcome).
 
 ## Install
 
