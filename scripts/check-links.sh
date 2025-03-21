@@ -1,0 +1,1 @@
+otool -D ./dist/Frameworks/Syphon.framework/Syphon
