@@ -1,26 +1,60 @@
 {
-  "name": "root",
-  "private": true,
-  "workspaces": [
-    "packages/**/*"
+  "name": "node-syphon",
+  "version": "1.1.3",
+  "license": "GPL-3.0+",
+  "description": "Experimental and superficial bindings between Syphon-Framework and node.js.",
+  "author": {
+    "name": "Benoît LAHOZ",
+    "url": "https://www.benoitlahoz.io",
+    "email": "info@benoitlahoz.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benoitlahoz/node-syphon.git"
+  },
+  "main": "dist/node-syphon.js",
+  "module": "dist/node-syphon.mjs",
+  "types": "dist/main/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/node-syphon.mjs",
+      "require": "./dist/node-syphon.js",
+      "types": "./dist/main/index.d.ts"
+    },
+    "./universal": {
+      "import": "./dist/node-syphon-universal.mjs",
+      "require": "./dist/node-syphon-universal.js",
+      "types": "./dist/main/universal.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "README.md"
   ],
   "scripts": {
-    "build": "lerna run build",
-    "update": "lernaupdate",
-    "test": "lerna run test --",
-    "modules:clean": "find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +",
-    "modules:reinstall": "yarn modules:clean && yarn install"
+    "install": "echo",
+    "prebuild": "rimraf dist",
+    "build": "yarn build:syphon && node-gyp configure && node-gyp build && yarn build:ts && yarn build:directory && rimraf build",
+    "build:syphon": "sh ./scripts/build-syphon.sh Release",
+    "build:addon": "node-gyp configure && node-gyp build && mv build/Release/syphon.node dist/bin/syphon.node && rimraf build",
+    "build:ts": "yarn build:directory && vite build --config vite.config.node.mts && vite build --config vite.config.universal.mts",
+    "build:directory": "vite build --config vite.config.directory.mts",
+    "check:links": "sh ./scripts/check-links.sh"
   },
   "devDependencies": {
-    "lerna": "^8.1.9",
-    "lerna-update-wizard": "^1.1.2"
+    "@types/bindings": "^1.5.1",
+    "@types/node": "^20.4.5",
+    "magic-string": "^0.30.17",
+    "node-addon-api": "^8.3.0",
+    "node-gyp": "^9.4.0",
+    "rimraf": "^5.0.1",
+    "rollup": "^4.34.8",
+    "terser": "^5.19.2",
+    "vite": "^4.4.7",
+    "vite-plugin-dts": "^3.3.1",
+    "vite-plugin-static-copy": "^0.17.0"
   },
-  "resolutions": {
-    "string-width": "^4.2.0",
-    "wrap-ansi": "^7.0.0"
-  },
-  "engines": {
-    "node": ">=20.17.0",
-    "npm": ">11.0.0"
+  "dependencies": {
+    "bindings": "^1.5.0"
   }
 }
