@@ -37,7 +37,7 @@
                     "defines": [
                         "__MACOSX_CORE__"
                     ],
-                    'architecture': 'x86_64',
+                    'architecture': ['x86_64', 'arm64'],
                     'xcode_settings': {
                         'CLANG_CXX_LIBRARY': 'libc++',
                         'MACOSX_DEPLOYMENT_TARGET': '10.13',
