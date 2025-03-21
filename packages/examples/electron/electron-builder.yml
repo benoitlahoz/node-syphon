@@ -19,6 +19,8 @@ mac:
     - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
     - NSLocalNetworkUsageDescription: Application request access to the Local Network.
   notarize: false
+  signIgnore:
+    - 'Syphon.framework'
 dmg:
   artifactName: ${name}-${version}.${ext}
 appImage:
