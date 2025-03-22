@@ -3,9 +3,10 @@
         {
             'target_name': 'syphon',
             'cflags!': ['-fno-exceptions'],
-            'cflags_cc!': ['-fno-exceptions'],
-            'cflags+': ['-f-exceptions', '-frtti'],
-            'cflags_cc+': ['-f-exceptions', '-frtti'],
+            # https://github.com/nodejs/node-addon-api/issues/1229#issuecomment-1307613279
+            'cflags_cc!': ['-fno-exceptions', '-03'],
+            'cflags+': ['-f-exceptions', '-frtti', '-03'],
+            'cflags_cc+': ['-f-exceptions', '-frtti', '-03'],
             'sources': [
                 # Helpers.
                 "<!@(node -p \"require('fs').readdirSync('./src/addon/helpers').map(f=>'src/addon/helpers/'+f).join(' ')\")",
@@ -39,7 +40,9 @@
                     ],
                     'architecture': 'x86_64',
                     'xcode_settings': {
+                        # https://stackoverflow.com/a/39519008/1060921
                         'CLANG_CXX_LIBRARY': 'libc++',
+                        # 'CLANG_CXX_LIBRARY': 'libstdc++',
                         'MACOSX_DEPLOYMENT_TARGET': '10.13',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
@@ -50,13 +53,26 @@
                         ]
                     },
                     'link_settings': {
+                        # SEEEEEE https://stackoverflow.com/questions/42512623/how-to-build-nodejs-c-addon-depending-on-a-shared-library-with-relative-locati
                         'libraries': [
                             '-Wl', 
                             '-rpath', 
                             '-Fdist/Frameworks', 
-                            '@loader_path/../Frameworks/',
-                            '<!(pwd)/node_modules/node-syphon/dist/Frameworks/',  
+                            # '@loader_path/../Frameworks/',  # No such file or directory at build time.
+                            # '<!(pwd)/node_modules/node-syphon/dist/Frameworks/',  # No such file or directory at build time.
                             # '<(module_root_dir)/dist/Frameworks/'
+                            "-Wl,-rpath,<!(pwd)/dist/Frameworks/"
+                            'IOSurface.framework',
+                            # "Syphon.framework",
+                            "Foundation.framework",
+                            'Cocoa.framework',
+                            'OpenGL.framework',
+                            'Metal.framework',
+                            'Accelerate.framework'
+                        ],
+                         "ldflags": [
+                             # https://stackoverflow.com/a/42512979/1060921
+                             "-rpath", "@loader_path/../Frameworks"
                         ]
                     },
                     # See: https://github.com/ucloud/urtc-electron-demo/blob/master/binding.gyp
@@ -65,18 +81,11 @@
                         # FIXME: Necessary?
                         '<!(pwd)/node_modules/node-syphon/dist/Frameworks/'
                     ],
-                    'link_settings': {
-                        'libraries': [
-                            "-Wl,-rpath,<!(pwd)/dist/Frameworks/"
-                            'IOSurface.framework',
-                            "Syphon.framework",
-                            "Foundation.framework",
-                            'Cocoa.framework',
-                            'OpenGL.framework',
-                            'Metal.framework',
-                            'Accelerate.framework'
-                        ]
-                    }
+                     "LD_RUNPATH_SEARCH_PATHS": [
+                        "@loader_path/../Frameworks",
+                        "@executable_path/../Frameworks",
+                        "/Library/Frameworks"
+                    ]
                 }]
             ]
         }
