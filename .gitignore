@@ -8,5 +8,4 @@
 /lib/node-syphon/build
 
 .DS_Store
-lerna-debug.log
 Syphon-Framework

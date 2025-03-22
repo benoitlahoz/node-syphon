@@ -38,7 +38,7 @@
                     "defines": [
                         "__MACOSX_CORE__"
                     ],
-                    'architecture': 'x86_64',
+                    'architecture': ['x86_64', 'arm64'],
                     'xcode_settings': {
                         # https://stackoverflow.com/a/39519008/1060921
                         'CLANG_CXX_LIBRARY': 'libc++',
