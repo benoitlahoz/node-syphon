@@ -4,33 +4,20 @@
 
 Experimental and superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syphon-Framework) and `node.js`.
 
+`node-syphon` provides Javascript functions to handle publishing and subcribing to Syphon textures in OpenGL and Metal as:
+
+- Pixel buffers/arrays (`Uint8Array`).
+- IOSurface handles in Electron (publish only).
+
 ## Install
 
 ```sh
 yarn add node-syphon
 ```
 
-## Build
+## Examples
 
-### Clone
-
-`git clone https://github.com/benoitlahoz/node-syphon.git`
-
-### Add Syphon
-
-`git submodule update --init`
-
-In Syphon Framework's XCode project:
-
-- Replace the _Dynamic Library Install Name_ property with this `@loader_path/../Frameworks/$(EXECUTABLE_PATH)`.
-- Replace the _Dynamic Library Install Name Base_ property with `@rpath`.
-- Remove any code signing rule.
-
-### Build all
-
-`yarn build`
-
-This will build Syphon, the node-addon and the JS library and copy everything in the `dist` folder.
+- [Electron pixel data & shared texture handle](https://github.com/benoitlahoz/node-syphon-electron-example)
 
 ## Usage
 
@@ -161,13 +148,38 @@ const interval = setInterval(() => {
 }, 1000 / 60);
 ```
 
+## Build
+
+### Clone
+
+`git clone https://github.com/benoitlahoz/node-syphon.git`
+
+### Add Syphon
+
+`git submodule update --init`
+
+In Syphon Framework's XCode project:
+
+- Replace the _Dynamic Library Install Name_ property with this `@loader_path/../Frameworks/$(EXECUTABLE_PATH)`.
+- Replace the _Dynamic Library Install Name Base_ property with `@rpath`.
+- Remove any code signing rule.
+
+### Build all
+
+`yarn build`
+
+This will build Syphon, the node-addon and the JS library and copy everything in the `dist` folder.
+
 ## Performances
 
 As of v0.6.1, the `electron` **client** example getting a **1920x1080** image from VDMX has a latency of **8 milliseconds** on a MacPro 2013.
 
 ## TODO
 
-- [x] Flip texture vertically in the addon (with Accelerate.framework?).
+- [x] Flip texture vertically in the addon.
 - [ ] Test on Apple Silicon.
 - [ ] Test the server description NSImage->Napi::Buffer.
 - [x] Explore new Electron's [`sharedTexture`](https://www.electronjs.org/docs/latest/api/structures/offscreen-shared-texture) to avoid copying pixels.
+- [ ] Library is unusable since we get a way to link to Syphon in users' packages: see
+  - [ ] https://stackoverflow.com/a/27541535/1060921
+- [ ] WebGPU Native to and from Browser.
