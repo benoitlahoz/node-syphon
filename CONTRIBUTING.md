@@ -33,7 +33,7 @@ This will download the latest release of our custom build of the framework and u
 Xcode and its command line tools must be installed:
 
 - https://apps.apple.com/us/app/xcode/id497799835?mt=12
-- User can directly install command line tools ffrom Xcode itself or run `xcode-select --install`
+- User can directly install command line tools from Xcode itself or run `xcode-select --install`
 
 #### Clone and build Syphon framework
 
