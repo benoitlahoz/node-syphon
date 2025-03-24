@@ -6,7 +6,7 @@ if ! test -d ./dist; then
     echo "Installing package from GitHub..."
     mkdir dist
     
-    BUILD = true
+    "$BUILD" = true
 fi
 
 cd dist
