@@ -1,13 +1,23 @@
 # node-syphon
 
-**WARNING: This package is VERY experimental. Use at your own risks.**
-
-Experimental and superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syphon-Framework) and `node.js`.
+Superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syphon-Framework) and `node.js`, that supports both Intel and Silicon architectures.
 
 `node-syphon` provides Javascript functions to handle publishing and subcribing to Syphon textures in OpenGL and Metal as:
 
 - Pixel buffers/arrays (`Uint8Array`).
 - IOSurface handles in Electron (publish only).
+
+- [node-syphon](#node-syphon)
+  - [Install](#install)
+  - [Examples](#examples)
+  - [Usage](#usage)
+    - [Client](#client)
+    - [Server](#server)
+      - [OpenGL](#opengl)
+      - [Metal](#metal)
+  - [Contribute](#contribute)
+  - [Performances](#performances)
+  - [TODO](#todo)
 
 ## Install
 
@@ -148,27 +158,9 @@ const interval = setInterval(() => {
 }, 1000 / 60);
 ```
 
-## Build
+## Contribute
 
-### Clone
-
-`git clone https://github.com/benoitlahoz/node-syphon.git`
-
-### Add Syphon
-
-`git submodule update --init`
-
-In Syphon Framework's XCode project:
-
-- Replace the _Dynamic Library Install Name_ property with this `@loader_path/../Frameworks/$(EXECUTABLE_PATH)`.
-- Replace the _Dynamic Library Install Name Base_ property with `@rpath`.
-- Remove any code signing rule.
-
-### Build all
-
-`yarn build`
-
-This will build Syphon, the node-addon and the JS library and copy everything in the `dist` folder.
+See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## Performances
 
@@ -177,7 +169,7 @@ As of v0.6.1, the `electron` **client** example getting a **1920x1080** image fr
 ## TODO
 
 - [x] Flip texture vertically in the addon.
-- [ ] Test on Apple Silicon.
+- [x] Test on Apple Silicon.
 - [ ] Test the server description NSImage->Napi::Buffer.
 - [x] Explore new Electron's [`sharedTexture`](https://www.electronjs.org/docs/latest/api/structures/offscreen-shared-texture) to avoid copying pixels.
 - [ ] Library is unusable since we get a way to link to Syphon in users' packages: see
