@@ -18,8 +18,8 @@ unzip ./SyphonFramework.zip
 
 rm SyphonFramework.zip
 
-if [ "$BUILD" == 1 ]; then
+# if [ "$BUILD" == 1 ]; then
     echo "Building package..."
     cd ../..
     node-gyp configure && node-gyp build && yarn build:ts && yarn build:directory && rimraf build
-fi
+# fi
