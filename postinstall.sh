@@ -1,5 +1,8 @@
-
 echo "Installing Syphon framework..."
+
+if [ -d ./dist ] -eq 0; then
+    mkdir dist
+fi
 
 cd dist
 mkdir Frameworks
