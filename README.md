@@ -29,6 +29,7 @@ yarn add node-syphon
 
 ## Examples
 
+- [Command line examples](https://github.com/benoitlahoz/node-syphon-cli-examples)
 - [Electron pixel data & shared texture handle](https://github.com/benoitlahoz/node-syphon-electron-example)
 
 ## Usage
