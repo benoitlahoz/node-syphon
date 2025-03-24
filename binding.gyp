@@ -53,7 +53,7 @@
                     'link_settings': {
                         # SEEEEEE https://stackoverflow.com/questions/42512623/how-to-build-nodejs-c-addon-depending-on-a-shared-library-with-relative-locati
                         'libraries': [
-                            '-Wl', 
+                            "-Wl,-rpath,'$$ORIGIN'",
                             'IOSurface.framework',
                             "Syphon.framework",
                             "Foundation.framework",
