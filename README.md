@@ -7,14 +7,16 @@ Superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syph
 - Pixel buffers/arrays (`Uint8Array`).
 - IOSurface handles in Electron (publish only).
 
+---
+
 - [node-syphon](#node-syphon)
   - [Install](#install)
   - [Examples](#examples)
   - [Usage](#usage)
     - [Client](#client)
     - [Server](#server)
-      - [OpenGL](#opengl)
-      - [Metal](#metal)
+        - [OpenGL](#opengl)
+        - [Metal](#metal)
   - [Contribute](#contribute)
   - [Performances](#performances)
   - [TODO](#todo)
@@ -27,6 +29,7 @@ yarn add node-syphon
 
 ## Examples
 
+- [Command line examples](https://github.com/benoitlahoz/node-syphon-cli-examples)
 - [Electron pixel data & shared texture handle](https://github.com/benoitlahoz/node-syphon-electron-example)
 
 ## Usage
