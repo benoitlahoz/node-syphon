@@ -45,15 +45,20 @@
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',
-                        # 'GCC_PREPROCESSOR_DEFINITIONS': 'SYPHON_CORE_SHARE',
                         'OTHER_CFLAGS': [
                             '-ObjC++'
+                        ],
+                        "LD_RUNPATH_SEARCH_PATHS": [
+                            # TODO: Is this useful?
+                            "@loader_path/../Frameworks",
+                            "@executable_path/../Frameworks"
                         ]
                     },
                     'link_settings': {
-                        # SEEEEEE https://stackoverflow.com/questions/42512623/how-to-build-nodejs-c-addon-depending-on-a-shared-library-with-relative-locati
                         'libraries': [
-                            "-Wl,-rpath,'$$ORIGIN'",
+                            # Replace @rpath by @loader_path will load Syphon.framework from 'dist/Frameworks'
+                            # @see https://stackoverflow.com/questions/42512623/how-to-build-nodejs-c-addon-depending-on-a-shared-library-with-relative-locati
+                            "-Wl,-rpath,'@loader_path/../Frameworks'",
                             'IOSurface.framework',
                             "Syphon.framework",
                             "Foundation.framework",
@@ -61,18 +66,11 @@
                             'OpenGL.framework',
                             'Metal.framework',
                             'Accelerate.framework'
-                        ]
+                        ],
                     },
-                    # See: https://github.com/ucloud/urtc-electron-demo/blob/master/binding.gyp
+                    # Where to find framework at build time.
                     'mac_framework_dirs': [
-                        "/Library/Frameworks",
                         '<!(pwd)/lib/'
-                    ],
-                     "LD_RUNPATH_SEARCH_PATHS": [
-                        "@loader_path/../Frameworks",
-                        "@executable_path/../Frameworks",
-                        # We want our addon to link exclusively to our custom universal Syphon build.
-                        # "/Library/Frameworks"
                     ]
                 }]
             ]
