@@ -1,12 +1,12 @@
 echo "Installing Syphon framework..."
 
-BUILD = false
+BUILD = 0
 
 if ! test -d ./dist; then
     echo "Installing package from GitHub..."
     mkdir dist
     
-    "$BUILD" = true
+    BUILD = 1
 fi
 
 cd dist
@@ -18,7 +18,7 @@ unzip ./SyphonFramework.zip
 
 rm SyphonFramework.zip
 
-if [ "$BUILD" = true ]; then
+if [ "$BUILD" == 1 ]; then
     echo "Building package..."
     node-gyp configure && node-gyp build && yarn build:ts && yarn build:directory && rimraf build
 fi
