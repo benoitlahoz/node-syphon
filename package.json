@@ -34,6 +34,7 @@
   ],
   "scripts": {
     "install": "echo",
+    "postinstall": "sh ./postinstall.sh",
     "prebuild": "rimraf dist",
     "build": "node-gyp configure && node-gyp build && yarn build:ts && yarn build:directory && rimraf build",
     "build:addon": "node-gyp configure && node-gyp build && mv build/Release/syphon.node dist/bin/syphon.node && rimraf build",
