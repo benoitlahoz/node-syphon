@@ -1,11 +1,8 @@
 /node_modules
 /**/node_modules
 /**/dist
-/.pastebin
-
-/lib/node-syphon/node_modules
-!/lib/node-syphon/dist
-/lib/node-syphon/build
 
 .DS_Store
-Syphon-Framework
+/lib
+
+/.pastebin

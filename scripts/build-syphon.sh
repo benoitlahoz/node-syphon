@@ -2,33 +2,33 @@
 
 CONFIG=${1?Error: No input configuration (Debug or Release) provided.}
 
-echo Building Syphon with scheme \'$CONFIG\'...
+rm -rf lib
+mkdir lib
+cd lib
 
-# Go to Syphon directory from the project's root.
+# Clone Syphon.
+git clone https://github.com/Syphon/Syphon-Framework.git
 cd Syphon-Framework
 
-# rm syphon.$CONFIG.xcconfig
+echo Building Syphon with scheme \'$CONFIG\'...
 
 # Need XCode installed.
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-xcodebuild clean 
-
-# xcodebuild -list
-
-# Export configuration file.
-# xcodebuild -scheme "Syphon" -target "Syphon" -configuration $CONFIG -showBuildSettings >> syphon.$CONFIG.xcconfig
-# sed -i '' -e '1,8d' syphon.$CONFIG.xcconfig
-# sed -i '' 's+@rpath\/Syphon.framework/Versions/A/Syphon+@loader_path/../Frameworks/Syphon.framework/Versions/A/Syphon+g' syphon.$CONFIG.xcconfig
-
-
 # Build.
-# xcodebuild -scheme "Syphon" -target "Syphon" -arch x86_64 -derivedDataPath .temp -configuration $CONFIG -xcconfig syphon.$CONFIG.xcconfig CONFIGURATION_BUILD_DIR=../dist/Frameworks
-# xcodebuild -scheme "Syphon" -arch x86_64 -derivedDataPath .temp CONFIGURATION_BUILD_DIR=build/$CONFIG
+xcodebuild clean
+xcodebuild -scheme "Syphon" -target "Syphon" -arch x86_64 -arch arm64 -derivedDataPath .temp -configuration $CONFIG CONFIGURATION_BUILD_DIR=../
 
-xcodebuild -scheme "Syphon" -target "Syphon" -arch x86_64 -arch arm64 -derivedDataPath .temp -configuration $CONFIG CONFIGURATION_BUILD_DIR=../dist/Frameworks
-
-# Clean-up.
+# Clean-up build.
 rm -rf DerivedData 
 rm -rf .temp
-rm -rf ../dist/Frameworks/Syphon.framework.dSYM
+rm -rf ../Syphon.framework.dSYM
+
+# Zip while preserving symbolic links.
+cd ..
+zip -vry SyphonFramework.zip Syphon.framework/ -x "*.DS_Store"
+
+# Final clean-up.
+rm -rf Syphon-Framework
+
+# TODO: See rpath, loader_path, etc. for our own executable https://itwenty.me/posts/01-understanding-rpath/
