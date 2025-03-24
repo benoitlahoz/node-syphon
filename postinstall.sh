@@ -1,7 +1,12 @@
 echo "Installing Syphon framework..."
 
+BUILD = false
+
 if ! test -d ./dist; then
+    echo "Installing package from GitHub..."
     mkdir dist
+    
+    BUILD = true
 fi
 
 cd dist
@@ -12,3 +17,8 @@ curl -L https://github.com/benoitlahoz/node-syphon/releases/latest/download/Syph
 unzip ./SyphonFramework.zip
 
 rm SyphonFramework.zip
+
+if BUILD; then
+    echo "Building package..."
+    node-gyp configure && node-gyp build && yarn build:ts && yarn build:directory && rimraf build
+fi
