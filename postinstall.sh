@@ -1,6 +1,6 @@
 echo "Installing Syphon framework..."
 
-if test -d ./dist -eq 0; then
+if ! test -d ./dist; then
     mkdir dist
 fi
 
