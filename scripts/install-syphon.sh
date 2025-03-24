@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "Downloading Syphon framework..."
+
 rm -rf lib
 mkdir lib
 cd lib
