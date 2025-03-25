@@ -3,9 +3,10 @@
 #include <unistd.h>
 
 #include "OpenGLClient.h"
+#include "OpenGLHelper.h"
 
 #import "../helpers/ServerDescriptionHelper.h"
-#include "../helpers/OpenGLHelper.h"
+
 
 using namespace syphon;
 

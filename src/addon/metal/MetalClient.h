@@ -3,7 +3,7 @@
 
 #include <napi.h>
 #include <Foundation/Foundation.h>
-#include <Cocoa/Cocoa.h>
+// #include <Cocoa/Cocoa.h>
 #include <Syphon/Syphon.h>
 #include <Metal/Metal.h>
 #include <Accelerate/Accelerate.h>

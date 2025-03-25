@@ -8,20 +8,46 @@
             'cflags+': ['-f-exceptions', '-frtti', '-03'],
             'cflags_cc+': ['-f-exceptions', '-frtti', '-03'],
             'sources': [
-                # Helpers.
-                "<!@(node -p \"require('fs').readdirSync('./src/addon/helpers').map(f=>'src/addon/helpers/'+f).join(' ')\")",
-                # Directory.
-                "<!@(node -p \"require('fs').readdirSync('./src/addon/directory').map(f=>'src/addon/directory/'+f).join(' ')\")",
-                # Client.
-                "<!@(node -p \"require('fs').readdirSync('./src/addon/client').map(f=>'src/addon/client/'+f).join(' ')\")",
-                # Server.
-                "<!@(node -p \"require('fs').readdirSync('./src/addon/server').map(f=>'src/addon/server/'+f).join(' ')\")",
-                # Promises.
-                "<!@(node -p \"require('fs').readdirSync('./src/addon/promises').map(f=>'src/addon/promises/'+f).join(' ')\")",
-                # Listeners.
-                "<!@(node -p \"require('fs').readdirSync('./src/addon/event-listeners').map(f=>'src/addon/event-listeners/'+f).join(' ')\")",
-                # Main.
-                "<!@(node -p \"require('fs').readdirSync('./src/addon').map(f=>'src/addon/'+f).join(' ')\")",
+                # General Helpers
+                './src/addon/helpers/macros.h',
+                './src/addon/helpers/ServerDescriptionHelper.h',
+                './src/addon/helpers/ServerDescriptionHelper.mm',
+                
+                # Directory
+                './src/addon/directory/ServerDirectory.h',
+                './src/addon/directory/ServerDirectory.mm',
+
+                # OepnGL
+                './src/addon/opengl/OpenGLClient.h',
+                './src/addon/opengl/OpenGLClient.mm',
+                './src/addon/opengl/OpenGLHelper.h',
+                './src/addon/opengl/OpenGLHelper.mm',
+                './src/addon/opengl/OpenGLServer.h',
+                './src/addon/opengl/OpenGLServer.mm',
+
+                # Metal
+                './src/addon/metal/MetalClient.h',
+                './src/addon/metal/MetalClient.mm',
+                './src/addon/metal/MetalServer.h',
+                './src/addon/metal/MetalServer.mm',
+
+                # Workers
+                './src/addon/promises/NSRunLoopPromiseWorker.h',
+                './src/addon/promises/PixelBufferPromiseWorker.h',
+                './src/addon/promises/PromiseWorker.h',
+                './src/addon/promises/PromiseWorker.mm',
+
+                # Event Listeners
+                './src/addon/event-listeners/DirectoryEventListener.h',
+                './src/addon/event-listeners/DirectoryEventListener.mm',
+                './src/addon/event-listeners/FrameEventListener.h',
+                './src/addon/event-listeners/FrameEventListener.mm',
+                './src/addon/event-listeners/StringEventListener.h',
+                './src/addon/event-listeners/StringEventListener.mm',
+
+                # Main
+                './src/addon/main.h',
+                './src/addon/main.mm',
             ],
             'include_dirs': [
                 "<!@(node -p \"require('node-addon-api').include\")"
@@ -38,8 +64,8 @@
                     "defines": [
                         "__MACOSX_CORE__"
                     ],
-                    'architecture': ['x86_64', 'arm64'],
                     'xcode_settings': {
+                        'ARCHS': ['x86_64', 'arm64'],
                         'CLANG_CXX_LIBRARY': 'libc++',
                         'MACOSX_DEPLOYMENT_TARGET': '10.15',
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',

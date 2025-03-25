@@ -2,7 +2,8 @@
 
 CONFIG=${1?Error: No input configuration (Debug or Release) provided.}
 
-rm -rf lib
+# Run as root early
+sudo rm -rf lib
 mkdir lib
 cd lib
 
@@ -12,7 +13,7 @@ cd Syphon-Framework
 
 echo Building Syphon with scheme \'$CONFIG\'...
 
-# Need XCode installed.
+# Need Xcode installed.
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
 # Build.
