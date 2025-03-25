@@ -60,7 +60,7 @@ directory.on(
 
         const buffer: Buffer = frame.buffer;
         const width: number = frame.width;
-        const height: number = frame.number;
+        const height: number = frame.height;
 
         // ...
       });
