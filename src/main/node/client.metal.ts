@@ -30,6 +30,7 @@ export class SyphonMetalClient {
     switch (channel) {
       case 'frame': {
         if (!this.isFrameListenerSet) {
+          // Set only one frame listener and prepare to dispatch to Javascript listeners.
           this.client.on('frame', this.frameDataListenerCallback.bind(this));
           this.isFrameListenerSet = true;
         }
@@ -48,6 +49,7 @@ export class SyphonMetalClient {
 
           if (this.listeners.length === 0) {
             this.client.off('frame');
+            this.isFrameListenerSet = false;
           }
         }
         break;
