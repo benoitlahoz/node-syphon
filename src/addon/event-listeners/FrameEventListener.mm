@@ -52,6 +52,6 @@ void FrameEventListener::Call(uint8_t * buffer, size_t width, size_t height) {
 
         };
 
-        m_listener.BlockingCall(callback); 
+        m_listener.NonBlockingCall(callback); // Was BlockingCall
     }
 }
