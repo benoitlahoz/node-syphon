@@ -45,6 +45,7 @@ OpenGLClientWrapper::OpenGLClientWrapper(const Napi::CallbackInfo& info)
     if (client) {
       CGLContextObj ctx = client.context;
       CGLSetCurrentContext(ctx);
+      CGLLockContext(CGLGetCurrentContext());
 
       SyphonOpenGLImage * frame = client.newFrameImage;
 
@@ -60,6 +61,7 @@ OpenGLClientWrapper::OpenGLClientWrapper(const Napi::CallbackInfo& info)
 
       [frame release];
 
+      CGLUnlockContext(CGLGetCurrentContext());
       CGLSetCurrentContext(NULL);
     }  
   }];
