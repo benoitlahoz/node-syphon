@@ -175,6 +175,5 @@ As of v0.6.1, the `electron` **client** example getting a **1920x1080** image fr
 - [x] Test on Apple Silicon.
 - [ ] Test the server description NSImage->Napi::Buffer.
 - [x] Explore new Electron's [`sharedTexture`](https://www.electronjs.org/docs/latest/api/structures/offscreen-shared-texture) to avoid copying pixels.
-- [ ] Library is unusable since we get a way to link to Syphon in users' packages: see
-  - [ ] https://stackoverflow.com/a/27541535/1060921
+- [x] Library is unusable since we get a way to link to Syphon in users' packages: see (https://stackoverflow.com/a/27541535/1060921)
 - [ ] WebGPU Native to and from Browser.
