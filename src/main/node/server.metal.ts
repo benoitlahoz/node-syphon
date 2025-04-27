@@ -26,18 +26,11 @@ export class SyphonMetalServer {
 
   public publishSurfaceHandle(
     handle: Buffer,
-    textureTarget: SyphonTextureTarget,
     imageRegion: { x: number; y: number; width: number; height: number },
     textureDimension: { width: number; height: number },
     flipped: boolean
   ): void {
-    this._server.publishSurfaceHandle(
-      handle,
-      textureTarget,
-      imageRegion,
-      textureDimension,
-      flipped
-    );
+    this._server.publishSurfaceHandle(handle, imageRegion, textureDimension, flipped);
   }
 
 
