@@ -126,11 +126,6 @@ void MetalServerWrapper::PublishSurfaceHandle(const Napi::CallbackInfo& info)
               "1st parameter (surface handle) must be a Buffer")
               .ThrowAsJavaScriptException();
 
-        if (!IS_TEXTURE_TARGET(info[1]))   // we accept it for parity – ignored later
-            Napi::TypeError::New(env,
-              "2nd parameter (texture_target) must be GL_TEXTURE_RECTANGLE_EXT or GL_TEXTURE_2D")
-              .ThrowAsJavaScriptException();
-
         if (!IS_RECT(info[2]))
             Napi::TypeError::New(env,
               "3rd parameter (imageRegion) must be a rectangle").ThrowAsJavaScriptException();
