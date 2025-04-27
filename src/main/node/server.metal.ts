@@ -21,6 +21,16 @@ export class SyphonMetalServer {
     this._server.publishImageData(data, imageRegion, bytesPerRow, flipped);
   }
 
+  public publishSurfaceHandle(
+    handle: Buffer,
+    imageRegion: { x: number; y: number; width: number; height: number },
+    textureDimension: { width: number; height: number },
+    flipped: boolean
+  ): void {
+    this._server.publishSurfaceHandle(handle, imageRegion, textureDimension, flipped);
+  }
+
+
   public get name(): string {
     return this._server.name;
   }

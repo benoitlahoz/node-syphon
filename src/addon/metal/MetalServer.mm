@@ -108,6 +108,97 @@ void MetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
     [cmd commit];
 }
 
+void MetalServerWrapper::PublishSurfaceHandle(const Napi::CallbackInfo& info)
+{
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+
+    /* ──────────────────────────── Parameter checks (first call only) */
+    if (!m_first_check_passed)
+    {
+        if (info.Length() != 4)
+            Napi::TypeError::New(env,
+              "publishSurfaceHandle expects (Buffer, string, rect, size, bool)")
+              .ThrowAsJavaScriptException();
+
+        if (!IS_BUFFER(info[0]))
+            Napi::TypeError::New(env,
+              "1st parameter (surface handle) must be a Buffer")
+              .ThrowAsJavaScriptException();
+
+        if (!IS_RECT(info[1]))
+            Napi::TypeError::New(env,
+              "2nd parameter (imageRegion) must be a rectangle").ThrowAsJavaScriptException();
+
+        if (!IS_SIZE(info[2]))
+            Napi::TypeError::New(env,
+              "3rd parameter (textureDimensions) must be a size").ThrowAsJavaScriptException();
+
+        if (!info[3].IsBoolean())
+            Napi::TypeError::New(env,
+              "4th parameter (flipped) must be a boolean").ThrowAsJavaScriptException();
+
+        m_first_check_passed = true;
+    }
+
+    auto raw      = info[0].As<Napi::Buffer<void **>>();
+    IOSurfaceRef ioSurface = *reinterpret_cast<IOSurfaceRef *>(raw.Data());
+
+    // 1 – texture_target (ignored in Metal, we just keep the signature)
+    //     std::string target = info[1].As<Napi::String>().Utf8Value();
+
+    Napi::Object regionObj = info[1].As<Napi::Object>();
+    NSRect imageRegion = NSMakeRect(regionObj.Get("x"    ).ToNumber().DoubleValue(),
+                                    regionObj.Get("y"    ).ToNumber().DoubleValue(),
+                                    regionObj.Get("width").ToNumber().DoubleValue(),
+                                    regionObj.Get("height").ToNumber().DoubleValue());
+
+    Napi::Object sizeObj = info[2].As<Napi::Object>();
+    NSSize textureDims = NSMakeSize(sizeObj.Get("width" ).ToNumber().DoubleValue(),
+                                    sizeObj.Get("height").ToNumber().DoubleValue());
+
+    BOOL flipped = info[3].As<Napi::Boolean>().Value() ? YES : NO;
+
+    /* ──────────────────────────── Create an IOSurface-backed MTLTexture */
+    const size_t width  = IOSurfaceGetWidth (ioSurface);
+    const size_t height = IOSurfaceGetHeight(ioSurface);
+
+    MTLTextureDescriptor *desc =
+        [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
+                                                           width:width
+                                                          height:height
+                                                       mipmapped:NO];
+    desc.usage         = MTLTextureUsageShaderRead   |
+                         MTLTextureUsageShaderWrite  |
+                         MTLTextureUsageRenderTarget;
+    desc.storageMode   = MTLStorageModeShared;         // IOSurface is shareable
+    desc.resourceOptions = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModeShared;
+
+    id<MTLTexture> surfaceTexture =
+        [m_device newTextureWithDescriptor:desc
+                                  iosurface:ioSurface
+                                      plane:0];
+    if (!surfaceTexture)
+    {
+        Napi::Error::New(env, "Failed to create MTLTexture from IOSurface")
+            .ThrowAsJavaScriptException();
+        return;
+    }
+
+    /* ──────────────────────────── Publish to Syphon */
+    id<MTLCommandBuffer> cmd = [m_queue commandBuffer];
+
+    [m_server publishFrameTexture:surfaceTexture
+                 onCommandBuffer:cmd
+                     imageRegion:imageRegion
+                         flipped:flipped];
+
+    [cmd addCompletedHandler:^(__unused id<MTLCommandBuffer> cb) {
+        [surfaceTexture release];          // keep lifetime until GPU is done
+    }];
+    [cmd commit];
+}
+
 Napi::Value MetalServerWrapper::GetName(const Napi::CallbackInfo &info) 
 {
   return Napi::String::New(info.Env(), [[m_server name] UTF8String]);
@@ -138,6 +229,7 @@ Napi::Object MetalServerWrapper::Init(Napi::Env env, Napi::Object exports)
     // Methods.
 
     InstanceMethod("publishImageData", &MetalServerWrapper::PublishImageData),
+    InstanceMethod("publishSurfaceHandle", &MetalServerWrapper::PublishSurfaceHandle),
     // InstanceMethod("publishFrameTexture", &MetalServerWrapper::PublishFrameTexture),
     InstanceMethod("dispose", &MetalServerWrapper::Dispose),
 
