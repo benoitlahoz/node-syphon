@@ -1,6 +1,7 @@
 import { SyphonAddon } from '../../common/bindings';
 import type { SyphonServerDescription } from '../../common/types';
-import { SyphonTextureTarget } from './server.gl';
+
+export type SyphonTextureTarget = 'GL_TEXTURE_RECTANGLE_EXT' | 'GL_TEXTURE_2D';
 
 export class SyphonMetalServer {
   private _server: any;
