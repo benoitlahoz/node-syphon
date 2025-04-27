@@ -1,5 +1,6 @@
 import { SyphonAddon } from '../../common/bindings';
 import type { SyphonServerDescription } from '../../common/types';
+import { SyphonTextureTarget } from './server.gl';
 
 export class SyphonMetalServer {
   private _server: any;
@@ -20,6 +21,23 @@ export class SyphonMetalServer {
   ): void {
     this._server.publishImageData(data, imageRegion, bytesPerRow, flipped);
   }
+
+  public publishSurfaceHandle(
+    handle: Buffer,
+    textureTarget: SyphonTextureTarget,
+    imageRegion: { x: number; y: number; width: number; height: number },
+    textureDimension: { width: number; height: number },
+    flipped: boolean
+  ): void {
+    this._server.publishSurfaceHandle(
+      handle,
+      textureTarget,
+      imageRegion,
+      textureDimension,
+      flipped
+    );
+  }
+
 
   public get name(): string {
     return this._server.name;

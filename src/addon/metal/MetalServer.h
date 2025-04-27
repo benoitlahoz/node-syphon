@@ -28,6 +28,7 @@ namespace syphon
     void Dispose(const Napi::CallbackInfo &info);
 
     void PublishImageData(const Napi::CallbackInfo &info);
+    void PublishSurfaceHandle(const Napi::CallbackInfo &info);
     // void PublishFrameTexture(const Napi::CallbackInfo &info);
 
     Napi::Value GetName(const Napi::CallbackInfo &info);
