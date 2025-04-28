@@ -127,46 +127,46 @@ void ServerDirectoryWrapper::Listen(const Napi::CallbackInfo& info)
   printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessage\": \"Listening to Syphon directory server notifications...\"}\n");
 
   _announce_observer = [[NSNotificationCenter defaultCenter] addObserverForName:SyphonServerAnnounceNotification
-      object: nil
-      queue: nil
-      usingBlock: ^ (NSNotification * notification) {
-        printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}\n", [toJSON(SyphonServerAnnounceNotification, [notification userInfo]) UTF8String]);
-      }
-    ];
+    object: nil
+    queue: nil
+    usingBlock: ^ (NSNotification * notification) {
+      printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}\n", [toJSON(SyphonServerAnnounceNotification, [notification userInfo]) UTF8String]);
+    }
+  ];
 
-    _retire_observer = [[NSNotificationCenter defaultCenter] addObserverForName:SyphonServerRetireNotification
-      object: nil
-      queue: nil
-      usingBlock: ^ (NSNotification * notification) {
-        printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}\n", [toJSON(SyphonServerRetireNotification, [notification userInfo]) UTF8String]);
-      }
-    ];
+  _retire_observer = [[NSNotificationCenter defaultCenter] addObserverForName:SyphonServerRetireNotification
+    object: nil
+    queue: nil
+    usingBlock: ^ (NSNotification * notification) {
+      printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}\n", [toJSON(SyphonServerRetireNotification, [notification userInfo]) UTF8String]);
+    }
+  ];
 
-    _update_observer = [[NSNotificationCenter defaultCenter] addObserverForName:SyphonServerUpdateNotification
-      object: nil
-      queue: nil
-      usingBlock: ^ (NSNotification * notification) {
-        printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}\n", [toJSON(SyphonServerUpdateNotification, [notification userInfo]) UTF8String]);
-      }
-    ];
+  _update_observer = [[NSNotificationCenter defaultCenter] addObserverForName:SyphonServerUpdateNotification
+    object: nil
+    queue: nil
+    usingBlock: ^ (NSNotification * notification) {
+      printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageNotification\", \"NodeSyphonMessage\": \%s}\n", [toJSON(SyphonServerUpdateNotification, [notification userInfo]) UTF8String]);
+    }
+  ];
 
-    [[NSRunLoop currentRunLoop] run];
+  [[NSRunLoop currentRunLoop] run];
 }
 
 void ServerDirectoryWrapper::_Dispose() {
 
-    printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessage\": \"Deallocation of server directory listener...\"}\n");
-    if (_announce_observer) {
-      CFRunLoopStop([[NSRunLoop currentRunLoop] getCFRunLoop]);
+  printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageInfo\", \"NodeSyphonMessage\": \"Dispose server directory...\"}\n");
+  if (_announce_observer) {
+    CFRunLoopStop([[NSRunLoop currentRunLoop] getCFRunLoop]);
 
-      [[NSNotificationCenter defaultCenter] removeObserver:_announce_observer];
-      [[NSNotificationCenter defaultCenter] removeObserver:_retire_observer];
-      [[NSNotificationCenter defaultCenter] removeObserver:_update_observer];
+    [[NSNotificationCenter defaultCenter] removeObserver:_announce_observer];
+    [[NSNotificationCenter defaultCenter] removeObserver:_retire_observer];
+    [[NSNotificationCenter defaultCenter] removeObserver:_update_observer];
 
-      _announce_observer = nil;
-      _retire_observer = nil;
-      _update_observer = nil;
-    }
+    _announce_observer = nil;
+    _retire_observer = nil;
+    _update_observer = nil;
+  }
 
 }
 
