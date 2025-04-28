@@ -120,7 +120,7 @@ void ServerDirectoryWrapper::Listen(const Napi::CallbackInfo& info)
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
 
-  // TODO: \n at the end of line to flush.
+  // \n at the end of line to flush.
   // See https://stackoverflow.com/questions/39180642/why-does-printf-not-produce-any-output
 
   // Very hacky way to communicate with main process from spawn server directory.
