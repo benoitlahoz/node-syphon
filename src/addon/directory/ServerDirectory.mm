@@ -99,7 +99,7 @@ ServerDirectoryWrapper::ServerDirectoryWrapper(const Napi::CallbackInfo& info)
   Napi::HandleScope scope(env);
 
   signal(SIGINT, sigHandler);
-  // signal(SIGSEV, sigHandler);
+  signal(SIGSEGV, sigHandler);
   signal(SIGBUS, sigHandler);
   signal(SIGKILL, sigHandler);
   signal(SIGTERM, sigHandler);
