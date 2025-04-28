@@ -56,7 +56,7 @@ void MetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
   if (!m_first_check_passed) {
 
     if (info.Length() != 4) {
-      Napi::TypeError::New(env, "Invalid number of parameters for 'publishImageData'").ThrowAsJavaScriptException();
+      Napi::TypeError::New(env, "publishImageData expects (Uint8ClampedArray, rect, size, bool)").ThrowAsJavaScriptException();
     }
     
     if (!IS_UINT8_CLAMPED_ARRAY(info[0])) {
@@ -67,8 +67,8 @@ void MetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
       Napi::TypeError::New(env, "2nd parameter (imageRegion) must be a rectangle in 'publishImageData'").ThrowAsJavaScriptException();
     }
 
-    if (!IS_NUMBER(info[2])) {
-      Napi::TypeError::New(env, "3rd parameter (bytesPerRow) must be a number (unsigned integer) in 'publishImageData'").ThrowAsJavaScriptException();
+    if (!IS_SIZE(info[2])) {
+      Napi::TypeError::New(env, "3rd parameter (textureDimensions) must be a size in 'publishImageData'").ThrowAsJavaScriptException();
     }
 
     if (!info[3].IsBoolean()) {
@@ -81,15 +81,17 @@ void MetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
     Napi::Object region = info[1].As<Napi::Object>();
     NSRect imageRegion = NSMakeRect(region.Get("x").ToNumber().Uint32Value(), region.Get("y").ToNumber().Uint32Value(), region.Get("width").ToNumber().Uint32Value(), region.Get("height").ToNumber().Uint32Value());
     
-    NSUInteger bytesPerRow = info[2].As<Napi::Number>().ToNumber().Uint32Value();
+    Napi::Object size = info[2].As<Napi::Object>();
+    NSSize texture_size = NSMakeSize(size.Get("width").ToNumber().FloatValue(), size.Get("height").ToNumber().FloatValue());
+    NSUInteger bytesPerRow = NSUInteger(texture_size.width) * 4;
     
     BOOL flipped = info[3].As<Napi::Boolean>().Value() == true ? YES : NO; 
 
     Napi::ArrayBuffer buffer = info[0].As<Napi::TypedArrayOf<uint8_t>>().ArrayBuffer(); 
 
     MTLTextureDescriptor *descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat: MTLPixelFormatRGBA8Unorm
-                                                             width: (NSUInteger) imageRegion.size.width 
-                                                             height: (NSUInteger) imageRegion.size.height
+                                                             width: (NSUInteger) texture_size.width 
+                                                             height: (NSUInteger) texture_size.height
                                                              mipmapped: NO];
 
     m_texture = [m_device newTextureWithDescriptor: descriptor];
@@ -105,6 +107,12 @@ void MetalServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
               imageRegion: imageRegion
               flipped: flipped];
 
+    // @RenaudRohlinger Should we add this?
+    /*
+    [cmd addCompletedHandler:^(__unused id<MTLCommandBuffer> cb) {
+        [m_texture release];          // keep lifetime until GPU is done
+    }];
+    */
     [cmd commit];
 }
 
@@ -118,34 +126,31 @@ void MetalServerWrapper::PublishSurfaceHandle(const Napi::CallbackInfo& info)
     {
         if (info.Length() != 4)
             Napi::TypeError::New(env,
-              "publishSurfaceHandle expects (Buffer, string, rect, size, bool)")
+              "'publishSurfaceHandle' expects (Buffer, rect, size, bool)")
               .ThrowAsJavaScriptException();
 
         if (!IS_BUFFER(info[0]))
             Napi::TypeError::New(env,
-              "1st parameter (surface handle) must be a Buffer")
+              "1st parameter (handle) must be a Buffer in 'publishSurfaceHandle'")
               .ThrowAsJavaScriptException();
 
         if (!IS_RECT(info[1]))
             Napi::TypeError::New(env,
-              "2nd parameter (imageRegion) must be a rectangle").ThrowAsJavaScriptException();
+              "2nd parameter (imageRegion) must be a rectangle in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
 
         if (!IS_SIZE(info[2]))
             Napi::TypeError::New(env,
-              "3rd parameter (textureDimensions) must be a size").ThrowAsJavaScriptException();
+              "3rd parameter (textureDimensions) must be a size in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
 
         if (!info[3].IsBoolean())
             Napi::TypeError::New(env,
-              "4th parameter (flipped) must be a boolean").ThrowAsJavaScriptException();
+              "4th parameter (flipped) must be a boolean in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
 
         m_first_check_passed = true;
     }
 
     auto raw      = info[0].As<Napi::Buffer<void **>>();
     IOSurfaceRef ioSurface = *reinterpret_cast<IOSurfaceRef *>(raw.Data());
-
-    // 1 – texture_target (ignored in Metal, we just keep the signature)
-    //     std::string target = info[1].As<Napi::String>().Utf8Value();
 
     Napi::Object regionObj = info[1].As<Napi::Object>();
     NSRect imageRegion = NSMakeRect(regionObj.Get("x"    ).ToNumber().DoubleValue(),
@@ -230,7 +235,6 @@ Napi::Object MetalServerWrapper::Init(Napi::Env env, Napi::Object exports)
 
     InstanceMethod("publishImageData", &MetalServerWrapper::PublishImageData),
     InstanceMethod("publishSurfaceHandle", &MetalServerWrapper::PublishSurfaceHandle),
-    // InstanceMethod("publishFrameTexture", &MetalServerWrapper::PublishFrameTexture),
     InstanceMethod("dispose", &MetalServerWrapper::Dispose),
 
     // Accessors.

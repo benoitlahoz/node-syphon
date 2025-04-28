@@ -16,3 +16,8 @@ xcodebuild -scheme "syphon" -target "syphon" -derivedDataPath .temp -configurati
 
 cd ..
 rm -rf build
+
+# Copy Syphon Framework to dist (to use package with yarn add link:/Users/.../node-syphon)
+mkdir dist/Frameworks
+cp -R ./lib/Syphon.framework ./dist/Frameworks/Syphon.framework
+

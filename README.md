@@ -103,19 +103,22 @@ for (let i = 0; i < size; i = i + 4) {
 const interval = setInterval(() => {
   server.publishImageData(
     data,
-    'GL_TEXTURE_2D',
 
     // Region.
 
     { x: 0, y: 0, width: 50, height: 50 },
 
-    // Size.
+    // Texture dimensions.
 
     { width: 50, height: 50 },
 
     // Flipped.
 
-    false
+    false,
+
+    // Texture target (defaults to 'GL_RECTANGLE_EXT').
+
+    'GL_TEXTURE_2D'
   );
 }, 1000 / 60);
 ```
@@ -150,9 +153,9 @@ const interval = setInterval(() => {
 
     { x: 0, y: 0, width: 50, height: 50 },
 
-    // Bytes per row.
+    // Texture dimensions.
 
-    4 * 50,
+    { width: 50, height: 50 },
 
     // Flipped.
 

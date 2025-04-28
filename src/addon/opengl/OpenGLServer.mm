@@ -63,36 +63,36 @@ void OpenGLServerWrapper::PublishImageData(const Napi::CallbackInfo& info)
     if (!IS_UINT8_CLAMPED_ARRAY(info[0])) {
       Napi::TypeError::New(env, "1st parameter (data) must be an Uint8ClampedArray in 'publishImageData'").ThrowAsJavaScriptException();
     }
-    
-    if (!IS_TEXTURE_TARGET(info[1])) {
-      Napi::TypeError::New(env, "2nd parameter (texture_target) must be a string containing GL_TEXTURE_RECTANGLE_EXT or GL_TEXTURE_2D in 'publishImageData'").ThrowAsJavaScriptException();
+
+    if (!IS_RECT(info[1])) {
+      Napi::TypeError::New(env, "2nd parameter (imageRegion) must be a rectangle in 'publishImageData'").ThrowAsJavaScriptException();
     }
 
-    if (!IS_RECT(info[2])) {
-      Napi::TypeError::New(env, "3rd parameter (imageRegion) must be a rectangle in 'publishImageData'").ThrowAsJavaScriptException();
+    if (!IS_SIZE(info[2])) {
+      Napi::TypeError::New(env, "3rd parameter (textureDimension) must be a size in 'publishImageData'").ThrowAsJavaScriptException();
     }
 
-    if (!IS_SIZE(info[3])) {
-      Napi::TypeError::New(env, "4th parameter (textureDimension) must be a size in 'publishImageData'").ThrowAsJavaScriptException();
+    if (!info[3].IsBoolean()) {
+      Napi::TypeError::New(env, "4th parameter (flipped) must be a boolean in 'publishImageData'").ThrowAsJavaScriptException();
     }
 
-    if (!info[4].IsBoolean()) {
-      Napi::TypeError::New(env, "5th parameter (flipped) must be a boolean in 'publishImageData'").ThrowAsJavaScriptException();
+    if (!IS_TEXTURE_TARGET(info[4])) {
+      Napi::TypeError::New(env, "5th parameter (textureTarget) must be a string containing GL_TEXTURE_RECTANGLE_EXT or GL_TEXTURE_2D in 'publishImageData'").ThrowAsJavaScriptException();
     }
 
     m_first_check_passed = true;
   }
 
-  std::string targetString = info[1].As<Napi::String>().Utf8Value();
+  std::string targetString = info[4].As<Napi::String>().Utf8Value();
   GLenum texture_target = targetString == "GL_TEXTURE_RECTANGLE_EXT" ? GL_TEXTURE_RECTANGLE_EXT : GL_TEXTURE_2D;
 
-  Napi::Object region = info[2].As<Napi::Object>();
+  Napi::Object region = info[1].As<Napi::Object>();
   NSRect imageRegion = NSMakeRect(region.Get("x").ToNumber().FloatValue(), region.Get("y").ToNumber().FloatValue(), region.Get("width").ToNumber().FloatValue(), region.Get("height").ToNumber().FloatValue());
   
-  Napi::Object size = info[3].As<Napi::Object>();
+  Napi::Object size = info[2].As<Napi::Object>();
   NSSize texture_size = NSMakeSize(size.Get("width").ToNumber().FloatValue(), size.Get("height").ToNumber().FloatValue());
 
-  BOOL flipped = info[4].As<Napi::Boolean>().Value() == true ? YES : NO;
+  BOOL flipped = info[3].As<Napi::Boolean>().Value() == true ? YES : NO;
 
   Napi::ArrayBuffer buffer = info[0].As<Napi::TypedArrayOf<uint8_t>>().ArrayBuffer(); 
 
@@ -134,23 +134,23 @@ void OpenGLServerWrapper::PublishSurfacehandle(const Napi::CallbackInfo& info)
     }
     
     if (!IS_BUFFER(info[0])) {
-      Napi::TypeError::New(env, "1st parameter (texture) must be a Buffer in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+      Napi::TypeError::New(env, "1st parameter (handle) must be a Buffer in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
     }
 
-    if (!IS_TEXTURE_TARGET(info[1])) {
-      Napi::TypeError::New(env, "2nd parameter (texture_target) must be a string containing GL_TEXTURE_RECTANGLE_EXT or GL_TEXTURE_2D in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+    if (!IS_RECT(info[1])) {
+      Napi::TypeError::New(env, "2nd parameter (imageRegion) must be a rectangle in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
     }
 
-    if (!IS_RECT(info[2])) {
-      Napi::TypeError::New(env, "3rd parameter (imageRegion) must be a rectangle in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+    if (!IS_SIZE(info[2])) {
+      Napi::TypeError::New(env, "3rd parameter (textureDimension) must be a size in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
     }
 
-    if (!IS_SIZE(info[3])) {
-      Napi::TypeError::New(env, "4th parameter (textureDimension) must be a size in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+    if (!info[3].IsBoolean()) {
+      Napi::TypeError::New(env, "4th parameter (flipped) must be a boolean in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
     }
 
-    if (!info[4].IsBoolean()) {
-      Napi::TypeError::New(env, "5th parameter (flipped) must be a boolean in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
+    if (!IS_TEXTURE_TARGET(info[4])) {
+      Napi::TypeError::New(env, "5th2nd parameter (textureTarget) must be a string containing GL_TEXTURE_RECTANGLE_EXT or GL_TEXTURE_2D in 'publishSurfaceHandle'").ThrowAsJavaScriptException();
     }
 
     m_first_check_passed = true;
@@ -158,16 +158,16 @@ void OpenGLServerWrapper::PublishSurfacehandle(const Napi::CallbackInfo& info)
 
   // TODO: In a Promise (sequential?), since we can't use a worker on JS side (handle buffer is cloned).
 
-  std::string targetString = info[1].As<Napi::String>().Utf8Value();
+  std::string targetString = info[4].As<Napi::String>().Utf8Value();
   GLenum texture_target = targetString == "GL_TEXTURE_RECTANGLE_EXT" ? GL_TEXTURE_RECTANGLE_EXT : GL_TEXTURE_2D;
 
-  Napi::Object region = info[2].As<Napi::Object>();
+  Napi::Object region = info[1].As<Napi::Object>();
   NSRect imageRegion = NSMakeRect(region.Get("x").ToNumber().FloatValue(), region.Get("y").ToNumber().FloatValue(), region.Get("width").ToNumber().FloatValue(), region.Get("height").ToNumber().FloatValue());
 
-  Napi::Object size = info[3].As<Napi::Object>();
+  Napi::Object size = info[2].As<Napi::Object>();
   NSSize texture_size = NSMakeSize(size.Get("width").ToNumber().FloatValue(), size.Get("height").ToNumber().FloatValue());
 
-  BOOL flipped = info[4].As<Napi::Boolean>().Value() == true ? YES : NO;
+  BOOL flipped = info[3].As<Napi::Boolean>().Value() == true ? YES : NO;
 
   auto buffer = info[0].As<Napi::Buffer<void**>>();
 
