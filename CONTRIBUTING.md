@@ -3,11 +3,11 @@
 - [Contributing](#contributing)
   - [Clone the repository](#clone-the-repository)
   - [Install framework dependency](#install-framework-dependency)
-    - [Download and install universal Syphon framework](#download-and-install-universal-syphon-framework)
-    - [Build custom Syphon](#build-custom-syphon)
+    - [1. Download and install universal Syphon framework](#1-download-and-install-universal-syphon-framework)
+    - [2. Or build custom Syphon](#2-or-build-custom-syphon)
       - [Prerequisites](#prerequisites)
       - [Clone and build Syphon framework](#clone-and-build-syphon-framework)
-    - [Build the addon](#build-the-addon)
+    - [3. Build the addon](#3-build-the-addon)
 
 ## Clone the repository
 
@@ -21,13 +21,14 @@ When contributing to `node-syphon` development, user will need to rebuild the no
 
 The simple way to get it is to download our custom build for Intel and Silicon, but future usages may need to rebuild the framework from scratch. Here is how to do it.
 
-### Download and install universal Syphon framework
+### 1. Download and install universal Syphon framework
 
 `sudo sh ./scripts/install-syphon.sh`
 
 This will download the latest release of our custom build of the framework and unzip it in the `lib` folder.
+Go to step 3.
 
-### Build custom Syphon
+### 2. Or build custom Syphon
 
 #### Prerequisites
 
@@ -43,8 +44,9 @@ sudo sh ./scripts/build-syphon.sh Release
 ```
 
 This will build Syphon in the `lib` folder and zip it, preserving symbolic links. Note that the archive file is only needed if you wish to update the downloadble binary as a release in your fork.
+Go to step 3.
 
-### Build the addon
+### 3. Build the addon
 
 - Make sure you have [a supported version of Python](https://devguide.python.org/versions/) installed.
 
