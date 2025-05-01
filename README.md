@@ -9,7 +9,16 @@ Superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syph
 
 ---
 
+## Donate / Sponsor
+
+If you find this package useful, contribute to the author's open source work by donating here! Thank you!
+
+[![paypal](https://img.shields.io/badge/contribute-Paypal-2ea44f)](https://www.paypal.com/donate/?hosted_button_id=C2ABZ3KBUXF92)
+
+---
+
 - [node-syphon](#node-syphon)
+  - [Donate / Sponsor](#donate--sponsor)
   - [Install](#install)
   - [Examples](#examples)
   - [Usage](#usage)
