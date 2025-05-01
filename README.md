@@ -7,18 +7,17 @@ Superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syph
 - Pixel buffers/arrays (`Uint8Array`).
 - IOSurface handles in Electron (publish only).
 
----
-
 ## Donate / Sponsor
 
 If you find this package useful, contribute to the author's open source work by donating here! Thank you!
 
 [![paypal](https://img.shields.io/badge/contribute-Paypal-2ea44f)](https://www.paypal.com/donate/?hosted_button_id=C2ABZ3KBUXF92)
 
----
+## Table of Contents
 
 - [node-syphon](#node-syphon)
   - [Donate / Sponsor](#donate--sponsor)
+  - [Table of Contents](#table-of-contents)
   - [Install](#install)
   - [Examples](#examples)
   - [Usage](#usage)
@@ -184,4 +183,4 @@ As of v0.6.1, the `electron` **client** example getting a **1920x1080** image fr
 ## TODO
 
 - [ ] Test the server description NSImage->Napi::Buffer.
-- [ ] WebGPU Native to and from Browser.
+- [ ] Experiment WebGPU Native to and from Browser.
