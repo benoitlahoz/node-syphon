@@ -35,6 +35,7 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo& info)
   m_client = NULL;
   // Init listener to NULL until a first 'On' is called to bind a callback.
   m_frame_listener = NULL;
+  m_texture_listener = NULL;
 
   m_client = [[SyphonMetalClient alloc] initWithServerDescription: serverDescription
                                                            device: m_device
@@ -44,23 +45,80 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo& info)
       id<MTLTexture> frame = client.newFrameImage;
       NSUInteger width = frame.width;
       NSUInteger height = frame.height;
-      MTLRegion region = MTLRegionMake2D(0, 0, width, height);
-
-      uint8_t * pixel_buffer = new uint8_t[width * height * 4];
-      std::memset(pixel_buffer, 0, width * height * 4);
-
-      [frame getBytes: pixel_buffer
-          bytesPerRow: 4 * width
-           fromRegion: region
-          mipmapLevel: 0];
-
-      // Convert from BGRA to RGBA: could have an option to do it or not.
-      vImage_Buffer buffer = { .height = height, .width = width, .rowBytes = width * 4, .data = pixel_buffer };
-      const uint8_t map[] = { 2, 1, 0, 3 };
-      vImagePermuteChannels_ARGB8888(&buffer, &buffer, map, kvImageNoFlags);
+      
       
       if (m_frame_listener != NULL) {
+
+        MTLRegion region = MTLRegionMake2D(0, 0, width, height);
+
+        uint8_t * pixel_buffer = new uint8_t[width * height * 4];
+        std::memset(pixel_buffer, 0, width * height * 4);
+
+        [frame getBytes: pixel_buffer
+            bytesPerRow: 4 * width
+            fromRegion: region
+            mipmapLevel: 0];
+
+        // Convert from BGRA to RGBA: could have an option to do it or not.
+        vImage_Buffer buffer = { .height = height, .width = width, .rowBytes = width * 4, .data = pixel_buffer };
+        const uint8_t map[] = { 2, 1, 0, 3 };
+        vImagePermuteChannels_ARGB8888(&buffer, &buffer, map, kvImageNoFlags);
+
         m_frame_listener->Call((uint8_t *)buffer.data, width, height);
+      }
+
+      if (m_texture_listener != NULL) {
+        printf("Width: %lu, Height: %lu\n", width, height);
+        static const OSType kBGRA = 'BGRA';
+        NSDictionary *surfaceProps = @{
+          (__bridge NSString*)kIOSurfaceWidth           : @(width),
+          (__bridge NSString*)kIOSurfaceHeight          : @(height),
+          (__bridge NSString*)kIOSurfacePixelFormat     : @(kBGRA),
+          (__bridge NSString*)kIOSurfaceBytesPerElement : @4,
+          (__bridge NSString*)kIOSurfaceBytesPerRow     : @(width * 4),
+          (__bridge NSString*)kIOSurfaceIsGlobal        : @YES
+        };
+        IOSurfaceRef newSurf = IOSurfaceCreate(
+            (__bridge CFDictionaryRef)surfaceProps);
+
+        // Wrap the surface in a Metal texture 
+        MTLTextureDescriptor *desc =
+          [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
+                                                            width:width
+                                                            height:height
+                                                        mipmapped:NO];
+        desc.usage = MTLTextureUsageShaderRead |
+                    MTLTextureUsageShaderWrite |
+                    MTLTextureUsageRenderTarget;
+        id<MTLTexture> dstTex =
+          [m_device newTextureWithDescriptor:desc
+                                            iosurface:newSurf
+                                                plane:0];
+
+        // blit copy
+        id<MTLCommandBuffer> cmd = [m_queue commandBuffer];
+        id<MTLBlitCommandEncoder> blit = [cmd blitCommandEncoder];
+        MTLOrigin origin = {0,0,0};
+        MTLSize   size   = {width,height,1};
+        [blit copyFromTexture:frame
+                  sourceSlice:0
+                  sourceLevel:0
+                sourceOrigin:origin
+                  sourceSize:size
+                    toTexture:dstTex
+            destinationSlice:0
+            destinationLevel:0
+            destinationOrigin:origin];
+        [blit endEncoding];
+        [cmd commit];
+        [cmd waitUntilCompleted];
+
+        m_texture_listener->Call(reinterpret_cast<uint8_t*>(newSurf), width, height);
+
+        [dstTex release];
+        
+        printf("Texture\n");
+
       }
 
       [frame release];
@@ -82,7 +140,11 @@ MetalClientWrapper::~MetalClientWrapper()
     m_frame_listener->Dispose();
     m_frame_listener = NULL;
   }
-  
+
+  if (m_texture_listener != NULL) {
+    m_texture_listener->Dispose();
+    m_texture_listener = NULL;
+  }
 
   if (m_client != NULL) {
     [m_client stop];
@@ -98,6 +160,11 @@ void MetalClientWrapper::Dispose(const Napi::CallbackInfo& info)
   if (m_frame_listener != NULL) {
     m_frame_listener->Dispose();
     m_frame_listener = NULL;
+  }
+
+  if (m_texture_listener != NULL) {
+    m_texture_listener->Dispose();
+    m_texture_listener = NULL;
   }
 
   if (m_client != NULL) {
@@ -135,6 +202,17 @@ void MetalClientWrapper::On(const Napi::CallbackInfo &info)
     // Will replace listener if any was already set.
     
     m_frame_listener->Set(env, callback);
+  } else  if (channel == "texture") {
+    printf("Try...\n");
+    if (m_texture_listener == NULL) {
+      printf("Create...\n");
+      // Create 'texture' listener.
+      m_texture_listener = new TextureEventListener();
+      printf("Created...\n");
+    }
+    // Will replace listener if any was already set.
+    printf("Set...\n");
+    m_texture_listener->Set(env, callback);
   } else {
     std::string err = "String '" + channel + "' is not a valid channel listener.";
     Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
@@ -159,6 +237,9 @@ void MetalClientWrapper::Off(const Napi::CallbackInfo &info)
   if (channel == "frame") {
     // m_frame_listener = nullptr;
     m_frame_listener->Dispose();
+  } else if (channel == "texture") {
+    // m_frame_listener = nullptr;
+    m_texture_listener->Dispose();
   } else {
     std::string err = "String '" + channel + "' is not a valid channel listener.";
     Napi::TypeError::New(env, err).ThrowAsJavaScriptException();

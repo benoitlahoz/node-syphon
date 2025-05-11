@@ -9,6 +9,7 @@
 #include <Accelerate/Accelerate.h>
 #include "../helpers/macros.h"
 #include "../event-listeners/FrameEventListener.h"
+#include "../event-listeners/TextureEventListener.h"
 
 namespace syphon
 {
@@ -34,6 +35,7 @@ namespace syphon
     id<MTLDevice> m_device;
     id<MTLCommandQueue> m_queue;
     FrameEventListener * m_frame_listener;
+    TextureEventListener * m_texture_listener;
   };
 }
 

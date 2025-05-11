@@ -42,6 +42,8 @@
                 './src/addon/event-listeners/DirectoryEventListener.mm',
                 './src/addon/event-listeners/FrameEventListener.h',
                 './src/addon/event-listeners/FrameEventListener.mm',
+                './src/addon/event-listeners/TextureEventListener.h',
+                './src/addon/event-listeners/TextureEventListener.mm',
                 './src/addon/event-listeners/StringEventListener.h',
                 './src/addon/event-listeners/StringEventListener.mm',
 
