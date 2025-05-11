@@ -115,6 +115,7 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo& info)
 
         m_texture_listener->Call(reinterpret_cast<uint8_t*>(newSurf), width, height);
 
+        // We should pass a 'release' function to javascript to call this.
         [dstTex release];
         
         printf("Texture\n");
