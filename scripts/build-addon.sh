@@ -18,6 +18,7 @@ cd ..
 rm -rf build
 
 # Copy Syphon Framework to dist (to use package with yarn add link:/Users/.../node-syphon)
+# This will not be published to npm, but is needed for local development.
 mkdir dist/Frameworks
 cp -R ./lib/Syphon.framework ./dist/Frameworks/Syphon.framework
 
