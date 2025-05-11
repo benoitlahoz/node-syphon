@@ -115,7 +115,8 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo& info)
 
         m_texture_listener->Call(reinterpret_cast<uint8_t*>(newSurf), width, height);
 
-        // We should pass a 'release' function to javascript to call this.
+        // TODO: we should pass a 'release' function to javascript to call this.
+        // Comment this line to have a huge memory leak without crash. :)
         [dstTex release];
         
         printf("Texture\n");
