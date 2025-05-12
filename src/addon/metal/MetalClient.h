@@ -2,7 +2,9 @@
 #define ___METAL_CLIENT_H___
 
 #include <Foundation/Foundation.h>
+#include <map>
 #include <napi.h>
+#include <utility>
 // #include <Cocoa/Cocoa.h>
 #include "../event-listeners/FrameEventListener.h"
 #include "../event-listeners/TextureEventListener.h"
@@ -25,10 +27,11 @@ public:
   void Dispose(const Napi::CallbackInfo &info);
   void On(const Napi::CallbackInfo &info);
   void Off(const Napi::CallbackInfo &info);
+  void ReleaseTexture(const Napi::CallbackInfo &info);
 
-  int GetUniqueId() {
-    static std::atomic<int> next_id(1);
-    return ++next_id;
+  unsigned long GetFrameCount() {
+    static std::atomic<unsigned long> next_frame(1);
+    return ++next_frame;
   }
 
 private:
@@ -38,7 +41,9 @@ private:
   id<MTLDevice> m_device;
   id<MTLCommandQueue> m_queue;
   FrameEventListener *m_frame_listener;
+
   TextureEventListener *m_texture_listener;
+  std::map<unsigned long, id<MTLTexture>> m_textures;
 };
 } // namespace syphon
 

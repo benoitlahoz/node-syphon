@@ -22,7 +22,6 @@ export class SyphonMetalClient {
   }
 
   public dispose() {
-    console.log('DISPOSE CLIENT');
     this.frameListeners.length = 0;
     this.isFrameListenerSet = false;
     this.textureListeners.length = 0;
@@ -42,9 +41,7 @@ export class SyphonMetalClient {
         break;
       }
       case 'texture': {
-        console.log('Trying to bind event listener');
         if (!this.isTextureListenerSet) {
-          console.log('GO');
           // Set only one frame listener and prepare to dispatch to Javascript listeners.
           this.client.on('texture', this.textureHandleListenerCallback.bind(this));
           this.isTextureListenerSet = true;
@@ -92,7 +89,12 @@ export class SyphonMetalClient {
 
   private textureHandleListenerCallback(frame: any): void {
     for (const listener of this.textureListeners) {
-      listener(frame);
+      listener({
+        ...frame,
+        release: () => {
+          this.client.releaseTexture(frame.frameCount);
+        },
+      });
     }
   }
 }

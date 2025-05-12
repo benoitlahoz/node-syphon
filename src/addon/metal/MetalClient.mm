@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <stdio.h>
 #include <unistd.h>
@@ -37,6 +38,8 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo &info)
   m_frame_listener = NULL;
   m_texture_listener = NULL;
 
+  auto start = std::chrono::high_resolution_clock::now();
+
   m_client = [[SyphonMetalClient alloc]
       initWithServerDescription:serverDescription
                          device:m_device
@@ -74,7 +77,7 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo &info)
                     }
 
                     if (m_texture_listener != NULL) {
-                      printf("Width: %lu, Height: %lu\n", width, height);
+
                       static const OSType kBGRA = 'BGRA';
                       NSDictionary *surfaceProps = @{
                         (__bridge NSString *)kIOSurfaceWidth : @(width),
@@ -82,10 +85,12 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo &info)
                         (__bridge NSString *)kIOSurfacePixelFormat : @(kBGRA),
                         (__bridge NSString *)kIOSurfaceBytesPerElement : @4,
                         (__bridge NSString *)
+                        // FIXME: `IOSurface texture: bytesPerRow (7288) must be
+                        // aligned to 16 bytes`when resizing the server.
                         kIOSurfaceBytesPerRow : @(width * 4),
                         (__bridge NSString *)kIOSurfaceIsGlobal : @YES
                       };
-                      IOSurfaceRef newSurf = IOSurfaceCreate(
+                      IOSurfaceRef new_surface = IOSurfaceCreate(
                           (__bridge CFDictionaryRef)surfaceProps);
 
                       // Wrap the surface in a Metal texture
@@ -95,15 +100,17 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo &info)
                                                        width:width
                                                       height:height
                                                    mipmapped:NO];
+
                       desc.usage = MTLTextureUsageShaderRead |
                                    MTLTextureUsageShaderWrite |
                                    MTLTextureUsageRenderTarget;
-                      id<MTLTexture> dstTex =
+
+                      id<MTLTexture> dst_tex =
                           [m_device newTextureWithDescriptor:desc
-                                                   iosurface:newSurf
+                                                   iosurface:new_surface
                                                        plane:0];
 
-                      // blit copy
+                      // Blit copy
                       id<MTLCommandBuffer> cmd = [m_queue commandBuffer];
                       id<MTLBlitCommandEncoder> blit = [cmd blitCommandEncoder];
                       MTLOrigin origin = {0, 0, 0};
@@ -113,7 +120,7 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo &info)
                                 sourceLevel:0
                                sourceOrigin:origin
                                  sourceSize:size
-                                  toTexture:dstTex
+                                  toTexture:dst_tex
                            destinationSlice:0
                            destinationLevel:0
                           destinationOrigin:origin];
@@ -121,18 +128,23 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo &info)
                       [cmd commit];
                       [cmd waitUntilCompleted];
 
+                      unsigned long frame_count =
+                          MetalClientWrapper::GetFrameCount();
+
+                      auto elapsed =
+                          std::chrono::high_resolution_clock::now() - start;
+                      long long time_elapsed =
+                          std::chrono::duration_cast<std::chrono::microseconds>(
+                              elapsed)
+                              .count();
+
                       m_texture_listener->Call(
-                          reinterpret_cast<uint8_t *>(newSurf), width, height);
+                          reinterpret_cast<uint8_t *>(new_surface), width,
+                          height, "bgra", frame_count, time_elapsed);
 
-                      NSLog(@"Id: %p %lu", dstTex,
-                            MetalClientWrapper::GetUniqueId());
-
-                      // TODO: we should pass a 'release' function to javascript
-                      // to call this. Comment this line to have a huge memory
-                      // leak without crash. :)
-                      [dstTex release];
-
-                      printf("Texture\n");
+                      // Keep a reference to the texture, to be released later
+                      // with `ReleaseTexture`.
+                      m_textures[frame_count] = dst_tex;
                     }
 
                     [frame release];
@@ -252,15 +264,38 @@ void MetalClientWrapper::Off(const Napi::CallbackInfo &info) {
   std::string channel = info[0].As<Napi::String>().Utf8Value();
 
   if (channel == "frame") {
-    // m_frame_listener = nullptr;
     m_frame_listener->Dispose();
   } else if (channel == "texture") {
-    // m_frame_listener = nullptr;
     m_texture_listener->Dispose();
   } else {
     std::string err =
         "String '" + channel + "' is not a valid channel listener.";
     Napi::TypeError::New(env, err).ThrowAsJavaScriptException();
+  }
+}
+
+void MetalClientWrapper::ReleaseTexture(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  Napi::HandleScope scope(env);
+
+  if (info.Length() != 1) {
+    Napi::TypeError::New(env, "Texture release takes 1 arguments (id).")
+        .ThrowAsJavaScriptException();
+  }
+
+  if (!(info[0].IsNumber())) {
+    Napi::TypeError::New(env,
+                         "1st parameter of 'release' (id) must be a number.")
+        .ThrowAsJavaScriptException();
+  }
+
+  unsigned long frame_number = info[0].As<Napi::Number>().Uint32Value();
+
+  auto it = m_textures.find(frame_number);
+  if (it != m_textures.end()) {
+    id<MTLTexture> texture = it->second;
+    [texture release];
+    m_textures.erase(it);
   }
 }
 
@@ -273,13 +308,14 @@ bool MetalClientWrapper::HasInstance(Napi::Value value) {
 Napi::Object MetalClientWrapper::Init(Napi::Env env, Napi::Object exports) {
   Napi::HandleScope scope(env);
 
-  Napi::Function func =
-      DefineClass(env, "OpenGLClient",
-                  {
-                      InstanceMethod("dispose", &MetalClientWrapper::Dispose),
-                      InstanceMethod("on", &MetalClientWrapper::On),
-                      InstanceMethod("off", &MetalClientWrapper::Off),
-                  });
+  Napi::Function func = DefineClass(
+      env, "MetalClient",
+      {
+          InstanceMethod("dispose", &MetalClientWrapper::Dispose),
+          InstanceMethod("on", &MetalClientWrapper::On),
+          InstanceMethod("off", &MetalClientWrapper::Off),
+          InstanceMethod("releaseTexture", &MetalClientWrapper::ReleaseTexture),
+      });
 
   constructor = Napi::Persistent(func);
   constructor.SuppressDestruct();
