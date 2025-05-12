@@ -32,6 +32,12 @@ export class SyphonMetalClient {
   public on(channel: string, callback: (frame: SyphonFrameData) => void) {
     switch (channel) {
       case 'frame': {
+        process.emitWarning(
+          `SyphonMetalClient.on('frame') is deprecated. Use on('data') instead.`,
+          'DeprecationWarning'
+        );
+      }
+      case 'data': {
         if (!this.isFrameListenerSet) {
           // Set only one frame listener and prepare to dispatch to Javascript listeners.
           this.client.on('frame', this.frameDataListenerCallback.bind(this));
