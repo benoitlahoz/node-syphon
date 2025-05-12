@@ -230,15 +230,11 @@ void MetalClientWrapper::On(const Napi::CallbackInfo &info) {
 
     m_frame_listener->Set(env, callback);
   } else if (channel == "texture") {
-    printf("Try...\n");
     if (m_texture_listener == NULL) {
-      printf("Create...\n");
       // Create 'texture' listener.
       m_texture_listener = new TextureEventListener();
-      printf("Created...\n");
     }
     // Will replace listener if any was already set.
-    printf("Set...\n");
     m_texture_listener->Set(env, callback);
   } else {
     std::string err =
