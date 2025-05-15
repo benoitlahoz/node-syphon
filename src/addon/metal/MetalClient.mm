@@ -101,6 +101,7 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo &info)
                                                       height:height
                                                    mipmapped:NO];
 
+                      desc.storageMode = MTLStorageModeShared;
                       desc.usage = MTLTextureUsageShaderRead |
                                    MTLTextureUsageShaderWrite |
                                    MTLTextureUsageRenderTarget;
