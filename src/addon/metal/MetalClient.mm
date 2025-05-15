@@ -78,20 +78,25 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo &info)
 
                     if (m_texture_listener != NULL) {
 
+                      size_t bytesPerRow = width * 4;
+                      size_t alignment   = 16;                        // Metal’s guaranteed minimum
+                      bytesPerRow        = (bytesPerRow + alignment-1) & ~(alignment-1);
+
                       static const OSType kBGRA = 'BGRA';
                       NSDictionary *surfaceProps = @{
                         (__bridge NSString *)kIOSurfaceWidth : @(width),
                         (__bridge NSString *)kIOSurfaceHeight : @(height),
                         (__bridge NSString *)kIOSurfacePixelFormat : @(kBGRA),
                         (__bridge NSString *)kIOSurfaceBytesPerElement : @4,
-                        (__bridge NSString *)
-                        // FIXME: `IOSurface texture: bytesPerRow (7288) must be
-                        // aligned to 16 bytes`when resizing the server.
-                        kIOSurfaceBytesPerRow : @(width * 4),
+                        (__bridge NSString *)kIOSurfaceBytesPerRow : @(bytesPerRow),
                         (__bridge NSString *)kIOSurfaceIsGlobal : @YES
                       };
                       IOSurfaceRef new_surface = IOSurfaceCreate(
                           (__bridge CFDictionaryRef)surfaceProps);
+
+                      if (!new_surface) {
+                        Napi::TypeError::New(env, "IOSurfaceCreate failed").ThrowAsJavaScriptException();
+                      }
 
                       // Wrap the surface in a Metal texture
                       MTLTextureDescriptor *desc = [MTLTextureDescriptor
