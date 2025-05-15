@@ -95,7 +95,8 @@ MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo &info)
                           (__bridge CFDictionaryRef)surfaceProps);
 
                       if (!new_surface) {
-                        Napi::TypeError::New(env, "IOSurfaceCreate failed").ThrowAsJavaScriptException();
+                        NSLog(@"[MetalClient] IOSurfaceCreate failed (%zu×%zu)", width, height);
+                        return;
                       }
 
                       // Wrap the surface in a Metal texture
