@@ -23,14 +23,18 @@ export class SyphonOpenGLClient {
   public dispose() {
     this.listeners.length = 0;
     this.isFrameListenerSet = false;
-
-    // FIXME: Not sure it is actually calling dipose in addon.
     this.client.dispose(); // Will also remove addon's listener.
   }
 
   public on(channel: string, callback: (frame: SyphonFrameData) => void) {
     switch (channel) {
       case 'frame': {
+        process.emitWarning(
+          `SyphonOpenGLClient.on('frame') is deprecated. Use on('data') instead.`,
+          'DeprecationWarning'
+        );
+      }
+      case 'data': {
         if (!this.isFrameListenerSet) {
           // Set only one frame listener and prepare to dispatch to Javascript listeners.
           this.client.on('frame', this.frameDataListenerCallback.bind(this));
@@ -45,6 +49,12 @@ export class SyphonOpenGLClient {
   public off(channel: string, callback: (frame: SyphonFrameData) => void) {
     switch (channel) {
       case 'frame': {
+        process.emitWarning(
+          `SyphonOpenGLClient.off('frame') is deprecated. Use off('data') instead.`,
+          'DeprecationWarning'
+        );
+      }
+      case 'data': {
         const index = this.listeners.indexOf(callback);
         if (index >= 0) {
           this.listeners.splice(index, 1);
