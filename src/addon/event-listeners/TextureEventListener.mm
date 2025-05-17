@@ -32,12 +32,10 @@ void TextureEventListener::Call(uint8_t *surface, size_t width, size_t height,
 
     auto callback = [surface, pixel_format, width, height, frame_count,
                      time_elapsed](Napi::Env env, Napi::Function js_callback) {
-      auto napi_buffer = Napi::Buffer<uint8_t>::NewOrCopy(
+      auto napi_buffer = Napi::Buffer<uint8_t>::Copy(
           env,
-          const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(&surface)),
-          sizeof(IOSurfaceRef), [](Napi::BasicEnv, void *finalizeData) {
-            // delete[] static_cast<uint8_t *>(finalizeData);
-          });
+          reinterpret_cast<const uint8_t*>(&surface),
+          sizeof(IOSurfaceRef));
 
       Napi::Object obj = Napi::Object::New(env);
       obj.Set("surface", napi_buffer);
