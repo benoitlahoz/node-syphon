@@ -36,6 +36,7 @@ public:
 
 private:
   static Napi::FunctionReference constructor;
+  void CleanupTextures();
 
   SyphonMetalClient *m_client;
   id<MTLDevice> m_device;
