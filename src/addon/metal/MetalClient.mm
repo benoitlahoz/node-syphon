@@ -13,36 +13,10 @@ using namespace syphon;
 
 Napi::FunctionReference MetalClientWrapper::constructor;
 
-static void sigHandler(int sig) {
-  const char* sigName;
-  switch (sig) {
-    case SIGINT: sigName = "SIGINT"; break;
-    case SIGSEGV: sigName = "SIGSEGV"; break;
-    case SIGBUS: sigName = "SIGBUS"; break;
-    case SIGTERM: sigName = "SIGTERM"; break;
-    default: sigName = "UNKNOWN"; break;
-  }
-  printf("{\"NodeSyphonMessageType\": \"NodeSyphonMessageError\", \"NodeSyphonMessage\": \"Signal handler called: %s (%d)\"}\n", sigName, sig);
-  void *callstack[64];
-  int frames = backtrace(callstack, 64);
-  char **strs = backtrace_symbols(callstack, frames);
-  fprintf(stderr, "Stack backtrace (most recent call first):\n");
-  for (int i = 0; i < frames; ++i) {
-    fprintf(stderr, "%s\n", strs[i]);
-  }
-  free(strs);
-  exit(1);
-}
-
 MetalClientWrapper::MetalClientWrapper(const Napi::CallbackInfo &info)
     : Napi::ObjectWrap<MetalClientWrapper>(info) {
   Napi::Env env = info.Env();
   Napi::HandleScope scope(env);
-
-  signal(SIGINT, sigHandler);
-  signal(SIGSEGV, sigHandler);
-  signal(SIGBUS, sigHandler);
-  signal(SIGTERM, sigHandler);
 
   if (info.Length() != 1 || !info[0].IsObject()) {
     const char *err = "Please provide a valid server description.";
