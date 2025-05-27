@@ -42,6 +42,8 @@
                 './src/addon/event-listeners/DirectoryEventListener.mm',
                 './src/addon/event-listeners/FrameEventListener.h',
                 './src/addon/event-listeners/FrameEventListener.mm',
+                './src/addon/event-listeners/TextureEventListener.h',
+                './src/addon/event-listeners/TextureEventListener.mm',
                 './src/addon/event-listeners/StringEventListener.h',
                 './src/addon/event-listeners/StringEventListener.mm',
 
@@ -71,9 +73,7 @@
                         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
                         'GCC_ENABLE_CPP_RTTI': 'YES',
                         'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',
-                        'OTHER_CFLAGS': [
-                            '-ObjC++'
-                        ],
+                        'OTHER_CFLAGS': [],
                         "LD_RUNPATH_SEARCH_PATHS": [
                             # TODO: Is this useful?
                             "@loader_path/../Frameworks",

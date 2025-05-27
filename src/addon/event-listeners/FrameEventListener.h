@@ -3,23 +3,21 @@
 
 #include <napi.h>
 
-namespace syphon
-{
+namespace syphon {
 
-  class FrameEventListener
-  {
-    public:
-        FrameEventListener();
-        ~FrameEventListener();
+class FrameEventListener {
+public:
+  FrameEventListener();
+  ~FrameEventListener();
 
-        void Dispose();
+  void Dispose();
 
-        void Set(Napi::Env env, Napi::Function listener);
-        void Call(uint8_t * buffer, size_t width, size_t height);
+  void Set(Napi::Env env, Napi::Function listener);
+  void Call(uint8_t *buffer, size_t width, size_t height);
 
-    private:
-      Napi::ThreadSafeFunction m_listener;
-  };
-}
+private:
+  Napi::ThreadSafeFunction m_listener;
+};
+} // namespace syphon
 
 #endif
