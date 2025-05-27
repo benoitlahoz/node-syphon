@@ -5,7 +5,7 @@ Superficial bindings between [`Syphon-Framework`](https://github.com/Syphon/Syph
 `node-syphon` provides Javascript functions to handle publishing and subcribing to Syphon textures in OpenGL and Metal as:
 
 - Pixel buffers/arrays (`Uint8Array`).
-- IOSurface handles in Electron (publish only).
+- IOSurface handles in Electron (publish only, subscribing is ready and tested but waiting for the approval of [this Electron PR](https://github.com/electron/electron/pull/46811)).
 
 ## Donate / Sponsor
 
