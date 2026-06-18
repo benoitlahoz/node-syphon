@@ -109,27 +109,29 @@ void MetalServerWrapper::PublishImageData(const Napi::CallbackInfo &info) {
                                   height:(NSUInteger)texture_size.height
                                mipmapped:NO];
 
-  m_texture = [m_device newTextureWithDescriptor:descriptor];
-  [m_texture replaceRegion:MTLRegionMake2D(
-                               imageRegion.origin.x, imageRegion.origin.y,
-                               imageRegion.size.width, imageRegion.size.height)
-               mipmapLevel:0
-                 withBytes:buffer.Data()
-               bytesPerRow:bytesPerRow];
+  id<MTLTexture> texture = [m_device newTextureWithDescriptor:descriptor];
+  [texture replaceRegion:MTLRegionMake2D(
+                             imageRegion.origin.x, imageRegion.origin.y,
+                             imageRegion.size.width, imageRegion.size.height)
+             mipmapLevel:0
+               withBytes:buffer.Data()
+             bytesPerRow:bytesPerRow];
 
   id<MTLCommandBuffer> cmd = [m_queue commandBuffer];
 
-  [m_server publishFrameTexture:m_texture
+  [m_server publishFrameTexture:texture
                 onCommandBuffer:cmd
                     imageRegion:imageRegion
                         flipped:flipped];
 
-  // @RenaudRohlinger Should we add this?
-  /*
+  // Release this frame's texture once the GPU has finished reading it. Without
+  // this, every publishImageData call leaks one MTLTexture (manual retain/release:
+  // -newTextureWithDescriptor: returns a +1-owned object). A LOCAL texture (not the
+  // m_texture ivar) is captured by the block so overlapping frames can't release
+  // each other's texture. Mirrors PublishSurfaceHandle below.
   [cmd addCompletedHandler:^(__unused id<MTLCommandBuffer> cb) {
-      [m_texture release];          // keep lifetime until GPU is done
+    [texture release];
   }];
-  */
   [cmd commit];
 }
 
