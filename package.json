@@ -1,7 +1,7 @@
 {
   "name": "node-syphon",
-  "version": "1.5.1",
-  "license": "GPL-3.0+",
+  "version": "1.5.2",
+  "license": "MIT",
   "description": "Superficial bindings between Syphon-Framework and node.js.",
   "author": {
     "name": "Benoît LAHOZ",
