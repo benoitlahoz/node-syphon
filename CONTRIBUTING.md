@@ -53,3 +53,27 @@ Go to step 3.
 ```sh
 yarn build
 ```
+
+The native addon is built as a universal macOS binary (`x86_64` and `arm64`).
+The build fails if either architecture is missing. The Syphon framework in `lib`
+must also support both architectures.
+
+To verify the final binary after the complete build:
+
+```sh
+lipo -archs dist/bin/syphon.node
+```
+
+The output must contain `x86_64` and `arm64` (in either order).
+
+To build an Intel-only addon, including the JavaScript bundles:
+
+```sh
+yarn build:intel
+lipo -archs dist/bin/syphon.node
+```
+
+The output must be exactly `x86_64`. This can also be built on Apple Silicon,
+but loading it requires an Intel (`x86_64`) Node.js or Electron runtime.
+The copied Syphon framework remains universal and is compatible with Intel.
+Both commands replace `dist`; run `yarn build` again to restore the universal addon.

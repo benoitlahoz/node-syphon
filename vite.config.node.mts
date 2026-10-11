@@ -2,7 +2,6 @@ import { builtinModules } from 'module';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -27,15 +26,5 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['events'],
   },
-  plugins: [
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'build/Release/syphon.node',
-          dest: 'bin',
-        },
-      ],
-    }),
-    dts(),
-  ],
+  plugins: [dts()],
 });
