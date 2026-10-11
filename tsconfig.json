@@ -11,7 +11,6 @@
     "moduleResolution": "bundler",
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": ".",
     "isolatedModules": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
@@ -19,8 +18,8 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "paths": {
-      "@/*": ["src/*"],
-      "@/common/*": ["src/common/*"]
+      "@/*": ["./src/*"],
+      "@/common/*": ["./src/common/*"]
     },
     "lib": ["es2015", "webworker"],
     "types": ["vite/client"]
